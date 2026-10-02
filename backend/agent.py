@@ -9,7 +9,7 @@ import time
 from tools import TOOL_DECLARATIONS, TOOL_FUNCTIONS
 from scope_guard import check_bank_scope, REFUSAL_MESSAGE
 
-from backend.llm.factory import create_llm_provider
+from llm.factory import create_llm_provider
 
 
 SYSTEM_PROMPT = """Ты - AI-консультант банка «Элдик Банк» (Кыргызстан). Ты консультируешь физические лица.

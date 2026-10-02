@@ -112,6 +112,11 @@ class OpenRouterProvider(LLMProvider):
 
         data = response.json()
 
+        print(
+            f"[LLM] OpenRouter model used: "
+            f"{data.get('model')}"
+        )
+
         choice = data["choices"][0]
         message = choice["message"]
 
