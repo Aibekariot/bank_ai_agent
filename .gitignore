@@ -48,6 +48,7 @@ app.*.map.json
 .widget_preview/
 
 # Environment variables
+backend/.env
 .env
 *.env
 
@@ -63,3 +64,4 @@ __pycache__/
 # Flutter/Dart
 .dart_tool/
 build/
+
