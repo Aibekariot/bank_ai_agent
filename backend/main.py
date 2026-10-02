@@ -6,6 +6,9 @@ FastAPI backend для чата с AI-агентом банка.
     export GEMINI_API_KEY=your_key_here
     uvicorn main:app --reload --port 8000
 """
+from dotenv import load_dotenv
+
+load_dotenv()
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware

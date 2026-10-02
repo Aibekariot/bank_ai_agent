@@ -4,7 +4,6 @@ import 'screens/chat_screen.dart';
 void main() {
   runApp(const EldikBankApp());
 }
-
 class EldikBankApp extends StatelessWidget {
   const EldikBankApp({super.key});
 

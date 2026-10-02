@@ -1,18 +1,15 @@
 """
-Логика AI-агента: system prompt + цикл вызова Gemini с function calling.
+Логика AI-агента.
+
+Agent не зависит от конкретного LLM-провайдера.
 """
 
-import os
-
-import google.generativeai as genai
+import time
 
 from tools import TOOL_DECLARATIONS, TOOL_FUNCTIONS
 from scope_guard import check_bank_scope, REFUSAL_MESSAGE
 
-genai.configure(api_key=os.environ["GEMINI_API_KEY"])
-
-# Модель можно поменять через переменную окружения без правки кода.
-MODEL_NAME = os.environ.get("GEMINI_MODEL", "gemini-3.8-flash")
+from backend.llm.factory import create_llm_provider
 
 
 SYSTEM_PROMPT = """Ты - AI-консультант банка «Элдик Банк» (Кыргызстан). Ты консультируешь физические лица.
@@ -73,30 +70,6 @@ SYSTEM_PROMPT = """Ты - AI-консультант банка «Элдик Ба
 разметку - ответы показываются в простом чате."""
 
 
-def _build_model():
-    return genai.GenerativeModel(
-        model_name=MODEL_NAME,
-        system_instruction=SYSTEM_PROMPT,
-        tools=[{"function_declarations": TOOL_DECLARATIONS}],
-    )
-
-
-def _is_quota_error(exc: Exception) -> bool:
-    """
-    Проверяет, что Gemini вернул ошибку превышения квоты.
-    """
-    error_text = str(exc).lower()
-
-    return (
-        "429" in error_text
-        and (
-            "quota" in error_text
-            or "rate limit" in error_text
-            or "resource exhausted" in error_text
-        )
-    )
-
-
 QUOTA_MESSAGE = (
     "Сейчас AI-консультант временно недоступен из-за ограничения "
     "на количество запросов. Пожалуйста, попробуйте ещё раз немного позже."
@@ -104,91 +77,144 @@ QUOTA_MESSAGE = (
 
 
 def run_chat(history: list[dict]) -> str:
-    """
-    history: [{"role": "user"|"model", "text": "..."}]
-    Возвращает финальный текстовый ответ агента.
-    """
 
-    # Быстрый фильтр: посторонние вопросы не отправляем в Gemini.
+    total_started = time.perf_counter()
+
+    # ---------------------------------------------------------
+    # Scope guard
+    # ---------------------------------------------------------
+
+    scope_started = time.perf_counter()
+
     if not check_bank_scope(history):
+
+        elapsed = time.perf_counter() - scope_started
+
+        print(
+            f"[TIMING] scope_guard: {elapsed:.3f}s"
+        )
+
         print("[scope_guard] rejected")
+
         return REFUSAL_MESSAGE
+
+    scope_elapsed = time.perf_counter() - scope_started
+
+    print(
+        f"[TIMING] scope_guard: {scope_elapsed:.3f}s"
+    )
 
     print("[scope_guard] accepted")
 
-    # Первый запрос к Gemini.
-    try:
-        model = _build_model()
+    # ---------------------------------------------------------
+    # Создаём LLM
+    # ---------------------------------------------------------
 
-        gemini_history = [
-            {"role": m["role"], "parts": [m["text"]]}
-            for m in history[:-1]
-        ]
+    provider = create_llm_provider(
+        system_prompt=SYSTEM_PROMPT,
+        tool_declarations=TOOL_DECLARATIONS,
+    )
 
-        chat = model.start_chat(history=gemini_history)
+    # ---------------------------------------------------------
+    # Первый запрос
+    # ---------------------------------------------------------
 
-        response = chat.send_message(history[-1]["text"])
+    response = provider.start_chat(history)
 
-    except Exception as exc:
-        if _is_quota_error(exc):
-            print("[gemini] quota exceeded")
-            return QUOTA_MESSAGE
+    # ---------------------------------------------------------
+    # Tool calling loop
+    # ---------------------------------------------------------
 
-        raise
-
-    # Цикл function calling.
     max_tool_rounds = 6
 
-    for _ in range(max_tool_rounds):
-        function_call = _extract_function_call(response)
+    for round_number in range(1, max_tool_rounds + 1):
 
-        if function_call is None:
+        print(
+            f"[AGENT] tool round #{round_number}"
+        )
+
+        if not response.tool_calls:
+
             break
 
-        tool_name = function_call.name
-        tool_args = dict(function_call.args)
+        tool_results = []
 
-        if tool_name not in TOOL_FUNCTIONS:
-            tool_result = {"error": f"Неизвестная функция {tool_name}"}
-        else:
-            try:
-                tool_result = TOOL_FUNCTIONS[tool_name](**tool_args)
-            except Exception as exc:  # noqa: BLE001
-                tool_result = {"error": str(exc)}
+        for tool_call in response.tool_calls:
 
-        # Отправляем результат инструмента обратно Gemini.
-        try:
-            response = chat.send_message(
-                genai.protos.Content(
-                    parts=[
-                        genai.protos.Part(
-                            function_response=genai.protos.FunctionResponse(
-                                name=tool_name,
-                                response={"result": tool_result},
-                            )
-                        )
-                    ]
-                )
+            tool_name = tool_call.name
+
+            print(
+                f"[TOOL] {tool_name}"
             )
 
-        except Exception as exc:
-            if _is_quota_error(exc):
-                print("[gemini] quota exceeded")
-                return QUOTA_MESSAGE
+            tool_started = time.perf_counter()
 
-            raise
+            if tool_name not in TOOL_FUNCTIONS:
 
-    return response.text
+                tool_result = {
+                    "error": f"Неизвестная функция {tool_name}"
+                }
 
+            else:
 
-def _extract_function_call(response):
-    try:
-        parts = response.candidates[0].content.parts
-    except (AttributeError, IndexError):
-        return None
+                try:
 
-    for part in parts:
-        if part.function_call and part.function_call.name:
-            return part.function_call
+                    tool_result = TOOL_FUNCTIONS[
+                        tool_name
+                    ](
+                        **tool_call.arguments
+                    )
 
-    return None
+                except Exception as exc:
+
+                    tool_result = {
+                        "error": str(exc)
+                    }
+
+            tool_elapsed = (
+                time.perf_counter()
+                - tool_started
+            )
+
+            print(
+                f"[TOOL] {tool_name}: "
+                f"{tool_elapsed:.3f}s"
+            )
+
+            tool_results.append(
+                {
+                    "id": tool_call.id,
+                    "tool_call_id": tool_call.id,
+                    "name": tool_name,
+                    "result": tool_result,
+                }
+            )
+
+        # -----------------------------------------------------
+        # Возвращаем результаты модели
+        # -----------------------------------------------------
+
+        response = provider.send_tool_results(
+            tool_results
+        )
+
+    total_elapsed = (
+        time.perf_counter()
+        - total_started
+    )
+
+    print(
+        f"[CHAT] total: {total_elapsed:.3f}s"
+    )
+
+    # ---------------------------------------------------------
+    # Финальный ответ
+    # ---------------------------------------------------------
+
+    if response.text:
+        return response.text
+
+    return (
+        "Не удалось получить текстовый ответ "
+        "от AI-консультанта."
+    )
