@@ -21,7 +21,7 @@ import httpx
 BASE_URL = "https://eldik.kg"
 
 # Можно переопределить переменной окружения, не трогая код.
-BUILD_ID = os.environ.get("ELDIK_BUILD_ID", "L7_DIvR-ut06r58NTUIC4")
+BUILD_ID = os.environ.get("ELDIK_BUILD_ID", "ghL1BB5osN958Z-ryfzkV")
 
 _cache: dict[str, tuple[float, dict]] = {}
 CACHE_TTL_SECONDS = 15 * 60  # 15 минут
@@ -55,18 +55,113 @@ def _clean_html(raw: str | None) -> str:
 
 
 def _cached_get(url: str) -> dict:
+    """
+    GET-запрос к Eldik с кэшированием.
+
+    Показывает в логах:
+    - CACHE HIT
+    - CACHE MISS
+    - CACHE EXPIRED
+    - фактическое время HTTP-запроса
+    """
+
     now = time.time()
+
+    # =========================================================
+    # Проверяем кэш
+    # =========================================================
+
     if url in _cache:
+
         cached_at, data = _cache[url]
-        if now - cached_at < CACHE_TTL_SECONDS:
+
+        age = now - cached_at
+
+        if age < CACHE_TTL_SECONDS:
+
+            print(
+                f"[CACHE] HIT | "
+                f"age={age:.2f}s | "
+                f"url={url}"
+            )
+
             return data
 
-    with httpx.Client(timeout=10.0) as client:
-        response = client.get(url, headers={"User-Agent": "Mozilla/5.0"})
-        response.raise_for_status()
-        data = response.json()
+        print(
+            f"[CACHE] EXPIRED | "
+            f"age={age:.2f}s | "
+            f"url={url}"
+        )
 
-    _cache[url] = (now, data)
+    # =========================================================
+    # Кэша нет
+    # =========================================================
+
+    print(
+        f"[CACHE] MISS | "
+        f"url={url}"
+    )
+
+    started = time.perf_counter()
+
+    try:
+
+        with httpx.Client(
+            timeout=10.0
+        ) as client:
+
+            response = client.get(
+                url,
+                headers={
+                    "User-Agent": "Mozilla/5.0"
+                },
+            )
+
+            response.raise_for_status()
+
+            data = response.json()
+
+    except Exception as exc:
+
+        elapsed = (
+            time.perf_counter()
+            - started
+        )
+
+        print(
+            f"[HTTP] ERROR | "
+            f"time={elapsed:.3f}s | "
+            f"url={url} | "
+            f"error={exc}"
+        )
+
+        raise
+
+    elapsed = (
+        time.perf_counter()
+        - started
+    )
+
+    print(
+        f"[HTTP] GET | "
+        f"time={elapsed:.3f}s | "
+        f"url={url}"
+    )
+
+    # =========================================================
+    # Сохраняем результат
+    # =========================================================
+
+    _cache[url] = (
+        time.time(),
+        data,
+    )
+
+    print(
+        f"[CACHE] SAVED | "
+        f"ttl={CACHE_TTL_SECONDS}s"
+    )
+
     return data
 
 
