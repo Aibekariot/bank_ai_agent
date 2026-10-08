@@ -11,6 +11,7 @@
 
 import re
 
+from database import get_connection
 import eldik_client
 
 
@@ -180,33 +181,37 @@ def _stem(token: str) -> str:
 
 
 def _product_text(product: dict) -> str:
+    """
+    Формирует поисковый текст из данных банковского продукта.
+    Поддерживает структуру данных из PostgreSQL.
+    """
+
+    category = product.get("category") or {}
+    payment_system = product.get("payment_system") or {}
+
+    currencies = product.get("currencies") or []
+
+    currency_text = " ".join(
+        str(currency.get("code", ""))
+        for currency in currencies
+        if isinstance(currency, dict)
+    )
 
     parts = [
-        product.get("name", ""),
-        product.get("description", ""),
+        product.get("name"),
+        category.get("name"),
+        payment_system.get("name"),
+        currency_text,
+        product.get("issuance"),
+        product.get("annual_service"),
+        product.get("account_opening"),
+        product.get("short_desc"),
     ]
 
-    for key in (
-        "category",
-        "payment_system",
-    ):
-        parts.append(
-            product.get(key) or ""
-        )
-
-    parts.extend(
-        str(v)
-        for v in (
-            product.get("conditions") or {}
-        ).values()
-    )
-
-    parts.extend(
-        product.get("currencies") or []
-    )
-
-    return _norm(
-        " ".join(parts)
+    return " ".join(
+        str(part)
+        for part in parts
+        if part
     )
 
 
@@ -249,21 +254,28 @@ def _is_generic(token: str) -> bool:
 
 def _compact(product: dict, kind: str) -> dict:
     """
-    Урезанная версия продукта для ответа поиска.
-    Экономим токены LLM.
+    Формирует минимальный набор данных для LLM.
+    Внутренняя структура PostgreSQL не передаётся модели.
     """
 
     if kind == "cards":
 
+        category = product.get("category") or {}
+        payment_system = product.get("payment_system") or {}
+        currencies = product.get("currencies") or []
+
         return {
             "name": product.get("name"),
-            "category": product.get("category"),
-            "payment_system": product.get("payment_system"),
-            "currencies": product.get("currencies") or [],
-            "issuance_cost": product.get("issuance_cost"),
-            "annual_service_cost": product.get(
-                "annual_service_cost"
-            ),
+            "category": category.get("name"),
+            "payment_system": payment_system.get("name"),
+            "currencies": [
+                currency.get("code")
+                for currency in currencies
+                if isinstance(currency, dict)
+                and currency.get("code")
+            ],
+            "issuance_cost": product.get("issuance"),
+            "annual_service_cost": product.get("annual_service"),
         }
 
     return {
@@ -455,9 +467,28 @@ def _filter_by_query(
     if not query:
         return products
 
+    # Прямой поиск по исходному запросу.
+    # Нужен для названий брендов и платёжных систем:
+    # Элкарт, Visa, Mastercard и т.д.
+    raw_query = query.strip().lower()
+
+    if raw_query:
+        direct_result = [
+            p
+            for p in products
+            if raw_query in _product_text(p).lower()
+        ]
+
+        if direct_result:
+            return direct_result
+
+    # Старый механизм нормализации и стемминга
+    # оставляем для обычных слов.
+    normalized_query = _norm(query)
+
     stems = [
-        _stem(t)
-        for t in _tokens(query)
+        _stem(token).lower()
+        for token in _tokens(normalized_query)
     ]
 
     if not stems:
@@ -467,8 +498,8 @@ def _filter_by_query(
         p
         for p in products
         if any(
-            s in _product_text(p)
-            for s in stems
+            stem in _product_text(p).lower()
+            for stem in stems
         )
     ]
 
@@ -483,7 +514,7 @@ def list_card_products(
     """
     Основной инструмент для любых вопросов о банковских картах.
 
-    Возвращает:
+    Возвращает компактную информацию:
     - название;
     - категорию;
     - платёжную систему;
@@ -497,7 +528,7 @@ def list_card_products(
     явно спрашивает о бизнес-картах.
     """
 
-    products = eldik_client.get_cards()
+    products = _get_cards_from_db()
 
     normalized_query = _norm(query)
 
@@ -516,17 +547,24 @@ def list_card_products(
     # Обычный запрос относится к физическому лицу.
     # Поэтому бизнес-карты не показываем.
     if not is_business_query:
-
         products = [
             p
             for p in products
-            if p.get("category") != "Бизнес"
+            if (p.get("category") or {}).get("name") != "Бизнес"
         ]
 
-    return _filter_by_query(
+    # Сначала фильтруем полные данные из БД,
+    # чтобы поиск работал по всем доступным полям.
+    products = _filter_by_query(
         products,
         query
     )
+
+    # В LLM отправляем только необходимые данные.
+    return [
+        _compact(product, "cards")
+        for product in products
+    ]
 
 
 # ---------------------------------------------------------------------------
@@ -1178,3 +1216,143 @@ TOOL_FUNCTIONS = {
     "calculate_deposit_income":
         calculate_deposit_income,
 }
+# ---------------------------------------------------------------------------
+# Получение карт из базы данных
+# ---------------------------------------------------------------------------
+
+def _get_cards_from_db() -> list[dict]:
+    """
+    Получает карты из PostgreSQL в формате,
+    совместимом с существующим кодом tools.py.
+    """
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT
+                    c.id,
+                    c.eldik_id,
+                    c.slug,
+                    c.name,
+                    c.short_desc,
+                    c.issuance,
+                    c.annual_service,
+                    c.account_opening,
+                    c.image,
+                    c.image_mob,
+                    c.is_creatable,
+                    c.is_available,
+                    c.card_expiration_date,
+
+                    cc.id AS category_id,
+                    cc.name AS category_name,
+
+                    ps.id AS payment_system_id,
+                    ps.name AS payment_system_name,
+                    ps.image AS payment_system_image,
+                    ps.is_available AS payment_system_available,
+                    ps.is_open AS payment_system_open,
+                    ps.is_active AS payment_system_active
+
+                FROM cards c
+
+                LEFT JOIN card_categories cc
+                    ON c.category_id = cc.id
+
+                LEFT JOIN payment_systems ps
+                    ON c.payment_system_id = ps.id
+
+                ORDER BY c.id
+                """
+            )
+
+            rows = cur.fetchall()
+
+            cards = []
+
+            for row in rows:
+                (
+                    card_id,
+                    eldik_id,
+                    slug,
+                    name,
+                    short_desc,
+                    issuance,
+                    annual_service,
+                    account_opening,
+                    image,
+                    image_mob,
+                    is_creatable,
+                    is_available,
+                    card_expiration_date,
+                    category_id,
+                    category_name,
+                    payment_system_id,
+                    payment_system_name,
+                    payment_system_image,
+                    payment_system_available,
+                    payment_system_open,
+                    payment_system_active,
+                ) = row
+
+                cur.execute(
+                    """
+                    SELECT
+                        cu.id,
+                        cu.name,
+                        cu.code
+                    FROM card_currencies ccur
+                    JOIN currencies cu
+                        ON ccur.currency_id = cu.id
+                    WHERE ccur.card_id = %s
+                    ORDER BY cu.code
+                    """,
+                    (card_id,),
+                )
+
+                currencies = [
+                    {
+                        "id": currency_id,
+                        "name": currency_name,
+                        "code": currency_code,
+                    }
+                    for currency_id, currency_name, currency_code
+                    in cur.fetchall()
+                ]
+
+                cards.append(
+                    {
+                        "id": eldik_id,
+                        "slug": slug,
+                        "name": name,
+                        "short_desc": short_desc,
+                        "issuance": issuance,
+                        "annual_service": annual_service,
+                        "account_opening": account_opening,
+                        "image": image,
+                        "image_mob": image_mob,
+                        "is_creatable": is_creatable,
+                        "is_available": is_available,
+                        "card_expiration_date": card_expiration_date,
+                        "category": {
+                            "id": category_id,
+                            "name": category_name,
+                        }
+                        if category_id is not None
+                        else None,
+                        "payment_system": {
+                            "id": payment_system_id,
+                            "name": payment_system_name,
+                            "image": payment_system_image,
+                            "is_available": payment_system_available,
+                            "is_open": payment_system_open,
+                            "is_active": payment_system_active,
+                        }
+                        if payment_system_id is not None
+                        else None,
+                        "currencies": currencies,
+                    }
+                )
+
+            return cards

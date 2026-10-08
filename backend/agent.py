@@ -500,6 +500,13 @@ def run_chat(history: list[dict]) -> str:
                 f"{result_size} chars"
             )
 
+            if tool_name == "list_card_products":
+                print(
+                    f"[TOOL RESULT DATA] "
+                    f"{json.dumps(tool_result, ensure_ascii=False)}"
+            )
+
+
             tool_results.append(
                 {
                     "id": tool_call.id,
