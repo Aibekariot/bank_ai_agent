@@ -21,7 +21,7 @@ import httpx
 BASE_URL = "https://eldik.kg"
 
 # Можно переопределить переменной окружения, не трогая код.
-BUILD_ID = os.environ.get("ELDIK_BUILD_ID", "z1jVtg2AJNSJ6yOuXRYMV")
+BUILD_ID = os.environ.get("ELDIK_BUILD_ID", "ciHNqm5ryj8nM932omQUH")
 
 _cache: dict[str, tuple[float, dict]] = {}
 CACHE_TTL_SECONDS = 15 * 60  # 15 минут
