@@ -5,7 +5,7 @@ from database import get_connection
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-CARDS_FILE = BASE_DIR / "jisonki_eldika" / "payment-card_eldika"
+CARDS_FILE = BASE_DIR / "jisonki_eldika" / "N1_payment-card_eldika" / "payment-card_eldika"
 
 
 def load_cards():
