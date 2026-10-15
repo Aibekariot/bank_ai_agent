@@ -1,596 +1,476 @@
-
 """
 Функции (tools), которые LLM-агент может вызывать.
 
-Правило: всё, что касается реальных цифр банка
-(ставки, курсы, стоимость карт) агент обязан получать
-через эти функции, а не придумывать.
+Правило: всё, что касается реальных цифр банка (ставки, курсы, стоимость
+карт), агент обязан получать через эти функции, а не придумывать.
 
-Математику (платежи по кредиту/депозиту)
-считаем кодом, а не моделью.
+Откуда берутся данные:
+  * продукты и услуги (карты, кредиты, депозиты, переводы, мобильный
+    банкинг и т.д.) - из локальной базы знаний через модуль knowledge.py;
+    во время ответа клиенту обращений к сайту банка и к PostgreSQL нет;
+  * курсы валют - живой запрос к сайту (они меняются каждый день);
+  * контакты банка - словарь в eldik_client.py;
+  * расчёты (платёж по кредиту, доход по депозиту) - обычный Python-код.
+
+Названия инструментов и их основные поля сохранены, поэтому системный
+промпт в agent.py продолжает работать.
 """
 
-import re
+from datetime import date
 
-from database import get_connection
+import knowledge
 import eldik_client
 
 
 # ---------------------------------------------------------------------------
-# Нормализация и поиск
+# Вспомогательные функции форматирования данных для модели
 # ---------------------------------------------------------------------------
 
-# На сайте банка встречаются кириллические буквы-двойники
-# внутри латинских слов.
-_HOMOGLYPHS = str.maketrans(
-    "аеорсухкмтнв",
-    "aeopcyxkmthb"
-)
+MAX_TEXT_CHARS = 3000  # длинные тексты обрезаем, чтобы не тратить токены
 
 
-def _norm(text: str) -> str:
-    return (
-        (text or "")
-        .lower()
-        .replace("ё", "е")
-        .translate(_HOMOGLYPHS)
-    )
+def _clip(text: str, limit: int = MAX_TEXT_CHARS) -> tuple[str, bool]:
+    text = text or ""
+    if len(text) <= limit:
+        return text, False
+    return text[:limit].rstrip() + "…", True
 
 
-_STOPWORDS = {
-    _norm(w)
-    for w in [
-        "и", "в", "на", "по", "что", "как", "мне", "про",
-        "для", "или", "это", "есть", "какой", "какая",
-        "какие", "какое", "сколько", "стоит", "хочу",
-        "расскажи", "расскажите", "можно", "банк", "банка",
-        "элдик", "eldik", "у", "вас", "вы", "а", "о", "об",
-        "с", "со", "мой", "моя", "нужен", "нужна", "нужно",
-        "подскажите", "пожалуйста", "тариф", "условия",
-        "информация", "инфо",
-    ]
-}
-
-
-# Общие слова-категории.
-_GENERIC_STEMS = {
-    _norm(k): v
-    for k, v in {
-        "карт": "cards",
-        "card": "cards",
-        "кред": "credits",
-        "займ": "credits",
-        "ссуд": "credits",
-        "вкла": "deposits",
-        "депо": "deposits",
-        "сбер": "deposits",
-        "накоп": "deposits",
-    }.items()
-}
-
-
-# Слова, которые указывают на категорию,
-# но одновременно являются уточнением.
-_HINT_STEMS = {
-    _norm(k): v
-    for k, v in {
-        "visa": "cards",
-        "виза": "cards",
-        "mast": "cards",
-        "маст": "cards",
-        "элка": "cards",
-        "elca": "cards",
-        "elka": "cards",
-        "ипот": "credits",
-        "авто": "credits",
-        "рассроч": "credits",
-    }.items()
-}
-
-
-_SYNONYMS = {
-    _norm(k): _norm(v)
-    for k, v in {
-        "элкард": "элкарт",
-        "elcard": "элкарт",
-        "elkart": "элкарт",
-        "эл-карт": "элкарт",
-        "мастеркард": "mastercard",
-        "мастер": "mastercard",
-        "виза": "visa",
-    }.items()
-}
-
-
-def _tokens(query: str) -> list[str]:
-    raw = re.findall(
-        r"[a-z\u0430-\u044f0-9]+",
-        _norm(query)
-    )
-
-    tokens = []
-
-    for tok in raw:
-        tok = _SYNONYMS.get(tok, tok)
-
-        if tok in _STOPWORDS:
+def _conditions_dict(conditions: list[dict]) -> dict:
+    """[{key, value}, ...] -> {key: value}. Повторяющиеся ключи склеиваем."""
+    result: dict[str, str] = {}
+    for item in conditions or []:
+        key = (item.get("key") or "").strip()
+        value = (item.get("value") or "").strip()
+        if not key and not value:
             continue
-
-        if len(tok) < 2:
-            continue
-
-        tokens.append(tok)
-
-    return tokens
-
-
-def _stem(token: str) -> str:
-    if len(token) >= 4:
-        return token[:4]
-
-    return token
-
-
-def _product_text(product: dict) -> str:
-    """
-    Формирует поисковый текст из данных банковского продукта.
-    Поддерживает структуру данных из PostgreSQL.
-    """
-
-    category = product.get("category") or {}
-    payment_system = product.get("payment_system") or {}
-    currencies = product.get("currencies") or []
-    raw_data = product.get("raw_data") or {}
-
-    currency_text = " ".join(
-        str(currency.get("code", ""))
-        for currency in currencies
-        if isinstance(currency, dict)
-    )
-
-    # Добавляем доступные исходные данные карты,
-    # чтобы поиск мог учитывать и дополнительные поля.
-    raw_text = " ".join(
-        str(value)
-        for key, value in raw_data.items()
-        if isinstance(value, (str, int, float, bool))
-        and value is not None
-    ) if isinstance(raw_data, dict) else ""
-
-    parts = [
-        product.get("name"),
-        category.get("name"),
-        payment_system.get("name"),
-        currency_text,
-        product.get("issuance"),
-        product.get("annual_service"),
-        product.get("account_opening"),
-        product.get("short_desc"),
-        raw_text,
-    ]
-
-    return " ".join(
-        str(part)
-        for part in parts
-        if part
-    ).lower()
-
-
-def _category_of(token: str) -> str | None:
-    """
-    Категория продукта,
-    на которую указывает слово.
-    """
-
-    for stems in (
-        _GENERIC_STEMS,
-        _HINT_STEMS,
-    ):
-        for stem, category in stems.items():
-            if token.startswith(stem):
-                return category
-
-    return None
-
-
-def _is_generic(token: str) -> bool:
-    """
-    Слово-категория без уточнения:
-    "карта", "кредит", "вклад".
-    """
-
-    return (
-        any(
-            token.startswith(stem)
-            for stem in _GENERIC_STEMS
-        )
-        and not any(
-            token.startswith(stem)
-            for stem in _HINT_STEMS
-        )
-    )
-
-
-def _compact(product: dict, kind: str) -> dict:
-    """
-    Формирует набор данных для LLM.
-    Для карт возвращает дополнительные сведения из raw_data.
-    """
-
-    if kind == "cards":
-        category = product.get("category") or {}
-        payment_system = product.get("payment_system") or {}
-        currencies = product.get("currencies") or []
-        raw_data = product.get("raw_data") or {}
-
-        if not isinstance(raw_data, dict):
-            raw_data = {}
-
-        def get_card_value(key: str, fallback=None):
-            value = raw_data.get(key)
-
-            if value is not None and value != "":
-                return value
-
-            return fallback
-
-        return {
-            "name": product.get("name"),
-            "category": category.get("name"),
-            "payment_system": payment_system.get("name"),
-            "currencies": [
-                currency.get("code")
-                for currency in currencies
-                if isinstance(currency, dict)
-                and currency.get("code")
-            ],
-            "description": get_card_value(
-                "short_desc",
-                product.get("short_desc")
-            ),
-            "issuance_cost": get_card_value(
-                "issuance",
-                product.get("issuance")
-            ),
-            "annual_service_cost": get_card_value(
-                "annual_service",
-                product.get("annual_service")
-            ),
-            "account_opening": get_card_value(
-                "account_opening",
-                product.get("account_opening")
-            ),
-            "card_expiration_date": get_card_value(
-                "card_expiration_date",
-                product.get("card_expiration_date")
-            ),
-            "is_available": get_card_value(
-                "is_available",
-                product.get("is_available")
-            ),
-            "is_creatable": get_card_value(
-                "is_creatable",
-                product.get("is_creatable")
-            ),
-            "official_page": (
-                f"https://eldik.kg/ru/payment-cards/{product.get('slug')}"
-                if product.get("slug")
-                else None
-            ),
-        }
-
-    return {
-        "name": product.get("name"),
-        "conditions": product.get("conditions") or {},
-        "description": (
-            product.get("description") or ""
-        )[:200],
-    }
-
-
-# ---------------------------------------------------------------------------
-# Универсальный поиск
-# ---------------------------------------------------------------------------
-
-def search_bank_products(query: str) -> dict:
-    """
-    Универсальный поиск по всем продуктам банка.
-
-    Используется только тогда, когда невозможно определить
-    конкретную категорию продукта.
-
-    Для конкретных запросов о картах, кредитах или депозитах
-    лучше использовать специализированные функции.
-    """
-
-    catalog = {
-        "cards": eldik_client.get_cards(),
-        "credits": eldik_client.get_credits(),
-        "deposits": eldik_client.get_deposits(),
-    }
-
-    tokens = _tokens(query)
-
-    if not tokens:
-        return {
-            "query": query,
-            "overview": {
-                k: len(v)
-                for k, v in catalog.items()
-            },
-            "hint": (
-                "Запрос слишком общий. "
-                "Уточни: карты, кредиты или депозиты."
-            ),
-        }
-
-    generic_tokens = [
-        t for t in tokens
-        if _is_generic(t)
-    ]
-
-    specific_tokens = [
-        t for t in tokens
-        if not _is_generic(t)
-    ]
-
-    wanted_categories = {
-        c
-        for c in (
-            _category_of(t)
-            for t in tokens
-        )
-        if c
-    }
-
-    # Если запрос состоит только из названия категории.
-    if generic_tokens and not specific_tokens:
-        result = {
-            "query": query,
-            "hint": (
-                "Запрос общий. "
-                "Дай краткий обзор и задай "
-                "один уточняющий вопрос."
-            ),
-        }
-
-        for category in wanted_categories:
-            result[category] = [
-                _compact(p, category)
-                for p in catalog[category]
-            ]
-
-        return result
-
-    # Оценка релевантности.
-    scored = {
-        k: []
-        for k in catalog
-    }
-
-    stems = [
-        _stem(t)
-        for t in specific_tokens
-    ]
-
-    for category, products in catalog.items():
-        if wanted_categories and category not in wanted_categories:
-            continue
-
-        for product in products:
-            text = _product_text(product)
-
-            score = sum(
-                1
-                for s in stems
-                if s in text
-            )
-
-            if score:
-                scored[category].append((score, product))
-
-    result = {"query": query}
-    total = 0
-
-    for category, items in scored.items():
-        items.sort(key=lambda x: -x[0])
-
-        top = [
-            _compact(p, category)
-            for _, p in items[:5]
-        ]
-
-        if top:
-            result[category] = top
-            total += len(top)
-
-    if total == 0:
-        result["hint"] = (
-            "Ничего не найдено. "
-            "Не выдумывай продукт. "
-            "Предложи пользователю уточнить запрос "
-            "или обратиться в контакт-центр 9111."
-        )
-    elif total > 6:
-        result["hint"] = (
-            "Найдено много вариантов. "
-            "Кратко перечисли их и уточни, "
-            "что именно интересует пользователя."
-        )
-
+        if key in result:
+            result[key] = f"{result[key]}; {value}"
+        else:
+            result[key] = value
     return result
 
 
-# ---------------------------------------------------------------------------
-# Вспомогательная фильтрация
-# ---------------------------------------------------------------------------
-
-def _filter_by_query(
-    products: list[dict],
-    query: str
-) -> list[dict]:
-    if not query:
-        return products
-
-    # Прямой поиск по исходному запросу.
-    raw_query = query.strip().lower()
-
-    if raw_query:
-        direct_result = [
-            p
-            for p in products
-            if raw_query in _product_text(p)
-        ]
-
-        if direct_result:
-            return direct_result
-
-    # Нормализация и стемминг.
-    normalized_query = _norm(query)
-
-    stems = [
-        _stem(token).lower()
-        for token in _tokens(normalized_query)
-    ]
-
-    if not stems:
-        return products
-
+def _documents(docs: list[dict], limit: int = 6) -> list[dict]:
     return [
-        p
-        for p in products
-        if any(
-            stem in _product_text(p)
-            for stem in stems
-        )
+        {"title": d.get("title"), "url": d.get("url")}
+        for d in (docs or [])[:limit]
+        if d.get("url")
     ]
+
+
+def _meta(doc: dict) -> dict:
+    return {
+        "official_page": doc.get("source_url"),
+        "data_date": doc.get("data_date"),
+    }
+
+
+def _data_level(doc: dict) -> dict:
+    """Честно сообщаем модели, если по продукту есть только краткие данные."""
+    if doc.get("detail_level") == "list":
+        return {
+            "data_level": (
+                "краткие данные: детальная страница продукта в базе отсутствует; "
+                "если нужной подробности нет, скажи, что она не указана"
+            )
+        }
+    return {}
+
+
+COMPACT_AFTER = 3        # если продуктов больше, отдаём краткий вид
+COMPACT_TEXT_CHARS = 400  # размер описания в кратком виде
+
+_FEE_WORDS = ("обслуж", "открытие", "остаток", "перевыпуск", "выпуск", "стоимост")
+
+
+def _compact_text(text: str, limit: int = COMPACT_TEXT_CHARS) -> str:
+    """Для списков: оставляем строки про стоимость, остальное отбрасываем."""
+    lines = [l.strip() for l in (text or "").splitlines() if l.strip()]
+    fee = [l for l in lines if any(w in l.lower() for w in _FEE_WORDS)]
+    picked = "\n".join(fee) if fee else (lines[0] if lines else "")
+    return _clip(picked, limit)[0]
+
+
+def _card_view(doc: dict, compact: bool = False) -> dict:
+    a = doc.get("attributes", {})
+    if compact:
+        text, truncated = _compact_text(doc.get("text", "")), False
+    else:
+        text, truncated = _clip(doc.get("text", ""))
+    view = {
+        "name": doc.get("title"),
+        "category": a.get("category"),
+        "payment_system": a.get("payment_system"),
+        "audience": a.get("audience"),
+        "currencies": a.get("currencies") or [],
+        "issuance_cost": a.get("issuance"),
+        "annual_service_cost": a.get("annual_service"),
+        "account_opening": a.get("account_opening"),
+        "card_expiration_date": a.get("card_expiration_date"),
+        # В details лежат условия с детальной страницы карты (обслуживание,
+        # остаток, перевыпуск, преимущества). Если issuance_cost или
+        # annual_service_cost равны null, проверь details.
+        "details": text,
+    }
+    if compact:
+        # В списке без документов и длинных текстов: так ответ приходит
+        # быстрее. Подробности - отдельным запросом по названию карты.
+        view["more"] = "Подробности и документы: запроси эту карту по названию"
+    else:
+        view["documents"] = _documents(doc.get("documents"))
+    if truncated:
+        view["details_truncated"] = True
+    view.update(_data_level(doc))
+    view.update(_meta(doc))
+    return view
+
+
+def _product_view(doc: dict, compact: bool = False) -> dict:
+    """Кредиты, депозиты, исламские продукты, переводы."""
+    text, truncated = _clip(doc.get("text", ""), COMPACT_TEXT_CHARS if compact else MAX_TEXT_CHARS)
+    view = {
+        "name": doc.get("title"),
+        "conditions": _conditions_dict(doc.get("conditions")),
+        "description": text,
+    }
+    attrs = doc.get("attributes", {})
+    if attrs.get("is_available") is False:
+        view["is_available"] = False
+    if doc.get("documents") and not compact:
+        view["documents"] = _documents(doc["documents"])
+    if truncated:
+        view["description_truncated"] = True
+    view.update(_data_level(doc))
+    view.update(_meta(doc))
+    return view
+
+
+def _today() -> date:
+    """Сегодняшняя дата; вынесена в функцию, чтобы тесты могли её подменить."""
+    return date.today()
+
+
+def _parse_date(value) -> date | None:
+    try:
+        return date.fromisoformat(str(value))
+    except ValueError:
+        return None
+
+
+def _fmt_date(d: date) -> str:
+    return d.strftime("%d.%m.%Y")
+
+
+def _validity(doc: dict) -> dict:
+    """
+    Сроки программ партнёров. Сравниваются с сегодняшней датой при каждом
+    ответе: данные собраны раньше, и срок мог истечь уже после сборки.
+    """
+    attrs = doc.get("attributes") or {}
+    today = _today()
+    out: dict = {}
+
+    until = _parse_date(attrs.get("valid_until"))
+    if until:
+        if until < today:
+            out["validity_warning"] = (
+                f"Срок программы, указанный на странице банка, истёк {_fmt_date(until)}. "
+                "Не говори, что услуга действует сейчас: назови заявленную дату "
+                "и посоветуй уточнить актуальность в банке (9111)."
+            )
+        else:
+            out["valid_until"] = _fmt_date(until)
+
+    offers = attrs.get("offers")
+    if offers:
+        active, expired = [], []
+        for o in offers:
+            d = _parse_date(o.get("valid_until"))
+            item = {"partner": o.get("partner"), "benefit": o.get("benefit"),
+                    "valid_until": _fmt_date(d) if d else None}
+            (expired if d and d < today else active).append(item)
+        out["offers_active"] = active
+        if expired:
+            out["offers_expired"] = [f"{e['partner']} (до {e['valid_until']})" for e in expired]
+            out["offers_note"] = (
+                "Предложения из offers_expired по данным страницы закончились. "
+                "Не предлагай их как действующие; можно упомянуть, что срок прошёл."
+            )
+    if out:
+        out["today"] = today.isoformat()
+    return out
+
+
+def _generic_view(doc: dict, text_limit: int = MAX_TEXT_CHARS) -> dict:
+    text, truncated = _clip(doc.get("text", ""), text_limit)
+    view = {
+        "title": doc.get("title"),
+        "section": doc.get("section"),
+        "text": text,
+    }
+    conditions = _conditions_dict(doc.get("conditions"))
+    if conditions:
+        view["conditions"] = conditions
+    if doc.get("documents"):
+        view["documents"] = _documents(doc["documents"])
+    if truncated:
+        view["text_truncated"] = True
+    view.update(_validity(doc))
+    view.update(_data_level(doc))
+    view.update(_meta(doc))
+    return view
+
+
+def _view_for(doc: dict, text_limit: int = MAX_TEXT_CHARS) -> dict:
+    if doc["section"] == "cards":
+        return _card_view(doc)
+    if doc["section"] in ("credits", "deposits", "islamic", "transfers"):
+        view = _product_view(doc)
+        view["section"] = doc["section"]
+        return view
+    return _generic_view(doc, text_limit)
+
+
+NOT_FOUND_HINT = (
+    "Ничего не найдено. Не выдумывай продукт или условия. "
+    "Предложи уточнить запрос или обратиться в контакт-центр 9111."
+)
+
+
+def _safe(func):
+    """Если база знаний не найдена, агент получает понятную ошибку, а не падение."""
+
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except knowledge.KnowledgeError as exc:
+            print(f"[KNOWLEDGE ERROR] {exc}")
+            return {
+                "error": (
+                    "База знаний временно недоступна. Не отвечай по памяти. "
+                    "Предложи обратиться в контакт-центр 9111."
+                )
+            }
+
+    wrapper.__name__ = func.__name__
+    wrapper.__doc__ = func.__doc__
+    return wrapper
+
+
+def _listing(section: str, query: str, view) -> dict:
+    docs, _filtered = knowledge.filter_section(section, query)
+    if not docs:
+        return {"count": 0, "items": [], "hint": NOT_FOUND_HINT}
+    compact = len(docs) > COMPACT_AFTER
+    result = {"count": len(docs), "items": [view(d, compact=compact) for d in docs]}
+    if compact:
+        result["note"] = (
+            "Краткий список: основные ставки и условия. Подробности по "
+            "конкретному продукту запроси по его названию."
+        )
+    return result
 
 
 # ---------------------------------------------------------------------------
 # Карты
 # ---------------------------------------------------------------------------
 
-def list_card_products(
-    query: str = ""
-) -> list[dict]:
+_BUSINESS_WORDS = ("бизнес", "ип ", "юридичес", "предпринимател", "business")
+
+
+@_safe
+def list_card_products(query: str = "") -> dict:
     """
     Основной инструмент для любых вопросов о банковских картах.
 
-    Возвращает информацию о картах из PostgreSQL.
-
-    Для пустого query возвращаются карты для физических лиц.
-    Бизнес-карты показываются только если пользователь
-    явно спрашивает о бизнес-картах.
+    Пустой query возвращает карты для физических лиц. Бизнес-карты
+    показываются только если пользователь явно спрашивает о них.
     """
+    q = (query or "").lower() + " "
+    wants_business = any(w in q for w in _BUSINESS_WORDS)
 
-    products = _get_cards_from_db()
-    normalized_query = _norm(query)
+    docs, _filtered = knowledge.filter_section("cards", query)
+    if not wants_business:
+        docs = [d for d in docs if d["attributes"].get("audience") != "business"]
 
-    business_words = (
-        "бизнес",
-        "ип",
-        "юридичес",
-        "предпринимател",
-    )
+    if not docs:
+        return {"count": 0, "items": [], "hint": NOT_FOUND_HINT}
 
-    is_business_query = any(
-        word in normalized_query
-        for word in business_words
-    )
-
-    if not is_business_query:
-        products = [
-            p
-            for p in products
-            if (p.get("category") or {}).get("name") != "Бизнес"
-        ]
-
-    products = _filter_by_query(products, query)
-
-    return [
-        _compact(product, "cards")
-        for product in products
-    ]
+    compact = len(docs) > COMPACT_AFTER
+    return {"count": len(docs), "items": [_card_view(d, compact=compact) for d in docs]}
 
 
 # ---------------------------------------------------------------------------
-# Кредиты
+# Кредиты и депозиты
 # ---------------------------------------------------------------------------
 
-def list_credit_products(
-    query: str = ""
-) -> list[dict]:
-    """
-    Список кредитных продуктов банка.
-    """
+@_safe
+def list_credit_products(query: str = "") -> dict:
+    """Кредитные продукты банка (краткие условия и, где есть, детали)."""
+    return _listing("credits", query, _product_view)
 
-    return _filter_by_query(
-        eldik_client.get_credits(),
-        query
-    )
+
+@_safe
+def list_deposit_products(query: str = "") -> dict:
+    """Депозитные продукты банка."""
+    return _listing("deposits", query, _product_view)
 
 
 # ---------------------------------------------------------------------------
-# Депозиты
+# Банкоматы, отделения, кассы
 # ---------------------------------------------------------------------------
 
-def list_deposit_products(
-    query: str = ""
-) -> list[dict]:
-    """
-    Список депозитных продуктов банка.
-    """
+_KIND_RU = {
+    "atm": "Банкомат",
+    "branch": "Филиал / отделение",
+    "savings_cash": "Сберегательная касса",
+    "mobile_cash": "Выездная касса",
+    "other": "Точка обслуживания",
+}
 
-    return _filter_by_query(
-        eldik_client.get_deposits(),
-        query
-    )
+
+def _location_view(item: dict) -> dict:
+    view = {
+        "type": _KIND_RU.get(item.get("kind"), "Точка обслуживания"),
+        "name": item.get("name"),
+        "address": item.get("address"),
+        "city": item.get("city"),
+        "region": item.get("region"),
+        "phones": item.get("phones") or [],
+    }
+    if item.get("lat") is not None and item.get("lng") is not None:
+        # Ссылку на карту строит код, а не модель.
+        view["map_link"] = f"https://www.google.com/maps?q={item['lat']},{item['lng']}"
+    return view
+
+
+@_safe
+def find_locations(query: str = "", kind: str = "") -> dict:
+    """Банкоматы, филиалы и кассы банка: поиск по городу, области или улице."""
+    result = knowledge.find_locations(query, kind, limit=8)
+    out = {
+        "total": result["total"],
+        "shown": len(result["items"]),
+        "items": [_location_view(i) for i in result["items"]],
+        "coverage": result["coverage"],
+        "data_date": result["data_date"],
+        "note": (
+            "Режим работы и текущий статус в данных не указаны: не называй "
+            "время работы, не говори что точка открыта или закрыта, предложи "
+            "уточнить в контакт-центре 9111. coverage - сколько таких точек "
+            "в каждом регионе: если нужного города там нет, скажи что у тебя "
+            "нет данных по этому городу."
+        ),
+    }
+    if result["total"] == 0:
+        out["hint"] = (
+            "Ничего не найдено по этому запросу. Не выдумывай адреса. "
+            "Назови регионы из coverage или предложи позвонить в 9111."
+        )
+    return out
 
 
 # ---------------------------------------------------------------------------
 # Тарифы
 # ---------------------------------------------------------------------------
 
-def get_tariff_documents(
-    query: str = ""
-) -> list[dict]:
+@_safe
+def get_tariff_documents(query: str = "") -> dict:
     """
-    Официальные документы с тарифами банка.
+    Официальные документы с тарифами банка (названия и ссылки на PDF).
+
+    Текст самих PDF в базе знаний пока не хранится, поэтому цифры из этих
+    документов агент назвать не может: он даёт название и ссылку.
     """
+    docs, _filtered = knowledge.filter_section("tariffs", query)
+    if not docs:
+        return {"count": 0, "items": [], "hint": NOT_FOUND_HINT}
 
-    docs = eldik_client.get_tariff_documents()
+    items = []
+    for doc in docs:
+        for d in doc.get("documents", []):
+            items.append({"title": d.get("title"), "url": d.get("url")})
 
-    if not query:
-        return docs
+    return {
+        "count": len(items),
+        "items": items,
+        "note": (
+            "Это только список документов. Цифры внутри документов тебе "
+            "недоступны: не называй суммы, дай название документа. "
+            "Список может быть неполным."
+        ),
+        "data_date": docs[0].get("data_date"),
+    }
 
-    stems = [
-        _stem(t)
-        for t in _tokens(query)
-    ]
 
-    if not stems:
-        return docs
+# ---------------------------------------------------------------------------
+# Поиск по остальным разделам
+# ---------------------------------------------------------------------------
 
-    filtered = [
-        d
-        for d in docs
-        if all(
-            s in _norm(d["title"])
-            for s in stems
+SEARCHABLE_SECTIONS = [
+    "cards",
+    "credits",
+    "deposits",
+    "overdraft",
+    "transfers",
+    "accounts",
+    "islamic",
+    "salary_project",
+    "mobile_banking",
+    "instructions",
+    "card_privileges",
+    "tariffs",
+]
+
+
+@_safe
+def search_knowledge(query: str, section: str = "") -> dict:
+    """
+    Поиск по базе знаний банка: овердрафт, переводы, открытие счёта,
+    исламское финансирование, зарплатный проект, мобильный банкинг.
+    """
+    sections = [section] if section in SEARCHABLE_SECTIONS else None
+    docs = knowledge.search(query, sections=sections, limit=4)
+
+    if not docs:
+        return {"count": 0, "items": [], "hint": NOT_FOUND_HINT}
+
+    return {"count": len(docs), "items": [_view_for(d) for d in docs]}
+
+
+@_safe
+def search_bank_products(query: str) -> dict:
+    """
+    Универсальный поиск по всем разделам, когда категорию определить нельзя.
+    Возвращает краткие результаты.
+    """
+    if not knowledge.query_stems(query):
+        status = knowledge.status()
+        return {
+            "query": query,
+            "overview": {
+                k: v for k, v in status["sections"].items()
+                if k in SEARCHABLE_SECTIONS
+            },
+            "hint": "Запрос слишком общий. Уточни, что именно интересует.",
+        }
+
+    docs = knowledge.search(query, limit=6)
+    if not docs:
+        return {"query": query, "count": 0, "items": [], "hint": NOT_FOUND_HINT}
+
+    result = {
+        "query": query,
+        "count": len(docs),
+        "items": [_view_for(d, text_limit=400) for d in docs],
+    }
+    if len(docs) >= 6:
+        result["hint"] = (
+            "Найдено много вариантов. Кратко перечисли их и уточни, "
+            "что именно интересует пользователя."
         )
-    ]
-
-    if filtered:
-        return filtered
-
-    return [
-        d
-        for d in docs
-        if any(
-            s in _norm(d["title"])
-            for s in stems
-        )
-    ]
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -603,48 +483,26 @@ def get_bank_contacts() -> dict:
 
 
 # ---------------------------------------------------------------------------
-# Курсы валют
+# Курсы валют (живые данные, меняются каждый день)
 # ---------------------------------------------------------------------------
 
-def get_exchange_rate(
-    currency: str = ""
-) -> dict:
+def get_exchange_rate(currency: str = "") -> dict:
     """
     Актуальные курсы валют банка.
 
     Пустой currency возвращает все валюты.
     """
-
     rates = eldik_client.get_exchange_rates()
 
     if not currency:
         return rates
 
     currency = currency.upper()
-
-    cash = next(
-        (
-            r for r in rates["cash"]
-            if r["currency"] == currency
-        ),
-        None
-    )
-
-    cashless = next(
-        (
-            r for r in rates["cashless"]
-            if r["currency"] == currency
-        ),
-        None
-    )
+    cash = next((r for r in rates["cash"] if r["currency"] == currency), None)
+    cashless = next((r for r in rates["cashless"] if r["currency"] == currency), None)
 
     if not cash and not cashless:
-        return {
-            "error": (
-                f"Валюта {currency} "
-                "не найдена в списке банка"
-            )
-        }
+        return {"error": f"Валюта {currency} не найдена в списке банка"}
 
     return {
         "date": rates["date"],
@@ -667,12 +525,7 @@ def calculate_loan_payment(
     """Ежемесячный аннуитетный платёж."""
 
     if amount <= 0 or term_months <= 0:
-        return {
-            "error": (
-                "Сумма и срок должны "
-                "быть положительными числами"
-            )
-        }
+        return {"error": "Сумма и срок должны быть положительными числами"}
 
     monthly_rate = annual_rate_percent / 100 / 12
 
@@ -680,10 +533,7 @@ def calculate_loan_payment(
         monthly_payment = amount / term_months
     else:
         factor = (1 + monthly_rate) ** term_months
-        monthly_payment = (
-            amount * monthly_rate * factor
-            / (factor - 1)
-        )
+        monthly_payment = amount * monthly_rate * factor / (factor - 1)
 
     total_payment = monthly_payment * term_months
 
@@ -713,18 +563,9 @@ def calculate_deposit_income(
     """Доход по депозиту без капитализации."""
 
     if amount <= 0 or term_months <= 0:
-        return {
-            "error": (
-                "Сумма и срок должны "
-                "быть положительными числами"
-            )
-        }
+        return {"error": "Сумма и срок должны быть положительными числами"}
 
-    total_interest = (
-        amount
-        * (annual_rate_percent / 100)
-        * (term_months / 12)
-    )
+    total_interest = amount * (annual_rate_percent / 100) * (term_months / 12)
 
     return {
         "initial_amount": amount,
@@ -753,7 +594,7 @@ TOOL_DECLARATIONS = [
     {
         "name": "search_bank_products",
         "description": (
-            "Универсальный поиск по банковским продуктам. "
+            "Универсальный поиск по банковским продуктам и услугам. "
             "Используй, если невозможно определить категорию."
         ),
         "parameters": {
@@ -762,6 +603,32 @@ TOOL_DECLARATIONS = [
                 "query": {
                     "type": "string",
                     "description": "Запрос пользователя как есть",
+                },
+            },
+            "required": ["query"],
+        },
+    },
+    {
+        "name": "search_knowledge",
+        "description": (
+            "Поиск по базе знаний банка для вопросов НЕ про карты, кредиты "
+            "и депозиты: овердрафт, денежные переводы (SWIFT, Western Union, "
+            "MoneyGram и др.), открытие банковского счёта, исламское "
+            "финансирование (мурабаха), зарплатный проект, мобильный банкинг "
+            "и как его подключить. Возвращает текст раздела, условия, "
+            "документы и дату данных."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "query": {
+                    "type": "string",
+                    "description": "О чём спрашивает пользователь, ключевые слова",
+                },
+                "section": {
+                    "type": "string",
+                    "description": "Необязательно: раздел, чтобы сузить поиск",
+                    "enum": SEARCHABLE_SECTIONS,
                 },
             },
             "required": ["query"],
@@ -780,9 +647,7 @@ TOOL_DECLARATIONS = [
         ),
         "parameters": {
             "type": "object",
-            "properties": {
-                "query": _QUERY_PARAM,
-            },
+            "properties": {"query": _QUERY_PARAM},
         },
     },
     {
@@ -793,9 +658,7 @@ TOOL_DECLARATIONS = [
         ),
         "parameters": {
             "type": "object",
-            "properties": {
-                "query": _QUERY_PARAM,
-            },
+            "properties": {"query": _QUERY_PARAM},
         },
     },
     {
@@ -806,22 +669,44 @@ TOOL_DECLARATIONS = [
         ),
         "parameters": {
             "type": "object",
-            "properties": {
-                "query": _QUERY_PARAM,
-            },
+            "properties": {"query": _QUERY_PARAM},
         },
     },
     {
         "name": "get_tariff_documents",
         "description": (
-            "Официальные документы с тарифами банка. "
+            "Официальные документы с тарифами банка (названия и ссылки). "
             "Используй, если стоимость выпуска или обслуживания "
             "не указана в данных продукта."
         ),
         "parameters": {
             "type": "object",
+            "properties": {"query": _QUERY_PARAM},
+        },
+    },
+    {
+        "name": "find_locations",
+        "description": (
+            "Банкоматы, филиалы (отделения) и кассы банка с адресами и "
+            "телефонами. Используй на вопросы 'где банкомат', 'где отделение', "
+            "'адрес филиала в Оше'. Режим работы в данных отсутствует."
+        ),
+        "parameters": {
+            "type": "object",
             "properties": {
-                "query": _QUERY_PARAM,
+                "query": {
+                    "type": "string",
+                    "description": "Город, область, улица или название. Пусто = все точки.",
+                },
+                "kind": {
+                    "type": "string",
+                    "enum": ["atm", "branch", "savings_cash", "mobile_cash"],
+                    "description": (
+                        "atm = банкомат, branch = филиал/отделение, "
+                        "savings_cash = сберегательная касса, "
+                        "mobile_cash = выездная касса. Пусто = любой тип."
+                    ),
+                },
             },
         },
     },
@@ -839,9 +724,7 @@ TOOL_DECLARATIONS = [
     },
     {
         "name": "get_exchange_rate",
-        "description": (
-            "Актуальный курс валют банка (наличный и безналичный)."
-        ),
+        "description": "Актуальный курс валют банка (наличный и безналичный).",
         "parameters": {
             "type": "object",
             "properties": {
@@ -857,9 +740,7 @@ TOOL_DECLARATIONS = [
     },
     {
         "name": "calculate_loan_payment",
-        "description": (
-            "Рассчитать ежемесячный платёж по кредиту (аннуитет)."
-        ),
+        "description": "Рассчитать ежемесячный платёж по кредиту (аннуитет).",
         "parameters": {
             "type": "object",
             "properties": {
@@ -876,11 +757,7 @@ TOOL_DECLARATIONS = [
                     "description": "Срок кредита в месяцах",
                 },
             },
-            "required": [
-                "amount",
-                "annual_rate_percent",
-                "term_months",
-            ],
+            "required": ["amount", "annual_rate_percent", "term_months"],
         },
     },
     {
@@ -902,11 +779,7 @@ TOOL_DECLARATIONS = [
                     "description": "Срок вклада в месяцах",
                 },
             },
-            "required": [
-                "amount",
-                "annual_rate_percent",
-                "term_months",
-            ],
+            "required": ["amount", "annual_rate_percent", "term_months"],
         },
     },
 ]
@@ -918,156 +791,14 @@ TOOL_DECLARATIONS = [
 
 TOOL_FUNCTIONS = {
     "search_bank_products": search_bank_products,
+    "search_knowledge": search_knowledge,
     "list_card_products": list_card_products,
     "list_credit_products": list_credit_products,
     "list_deposit_products": list_deposit_products,
     "get_tariff_documents": get_tariff_documents,
+    "find_locations": find_locations,
     "get_bank_contacts": get_bank_contacts,
     "get_exchange_rate": get_exchange_rate,
     "calculate_loan_payment": calculate_loan_payment,
     "calculate_deposit_income": calculate_deposit_income,
 }
-
-
-# ---------------------------------------------------------------------------
-# Получение карт из базы данных
-# ---------------------------------------------------------------------------
-
-def _get_cards_from_db() -> list[dict]:
-    """
-    Получает карты из PostgreSQL вместе с raw_data JSONB.
-    """
-
-    with get_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute(
-                """
-                SELECT
-                    c.id,
-                    c.eldik_id,
-                    c.slug,
-                    c.name,
-                    c.short_desc,
-                    c.issuance,
-                    c.annual_service,
-                    c.account_opening,
-                    c.image,
-                    c.image_mob,
-                    c.is_creatable,
-                    c.is_available,
-                    c.card_expiration_date,
-                    cc.id AS category_id,
-                    cc.name AS category_name,
-                    ps.id AS payment_system_id,
-                    ps.name AS payment_system_name,
-                    ps.image AS payment_system_image,
-                    ps.is_available AS payment_system_available,
-                    ps.is_open AS payment_system_open,
-                    ps.is_active AS payment_system_active,
-                    c.raw_data
-                FROM cards c
-                LEFT JOIN card_categories cc
-                    ON c.category_id = cc.id
-                LEFT JOIN payment_systems ps
-                    ON c.payment_system_id = ps.id
-                ORDER BY c.id
-                """
-            )
-
-            rows = cur.fetchall()
-            cards = []
-
-            for row in rows:
-                (
-                    card_id,
-                    eldik_id,
-                    slug,
-                    name,
-                    short_desc,
-                    issuance,
-                    annual_service,
-                    account_opening,
-                    image,
-                    image_mob,
-                    is_creatable,
-                    is_available,
-                    card_expiration_date,
-                    category_id,
-                    category_name,
-                    payment_system_id,
-                    payment_system_name,
-                    payment_system_image,
-                    payment_system_available,
-                    payment_system_open,
-                    payment_system_active,
-                    raw_data,
-                ) = row
-
-                cur.execute(
-                    """
-                    SELECT
-                        cu.id,
-                        cu.name,
-                        cu.code
-                    FROM card_currencies ccur
-                    JOIN currencies cu
-                        ON ccur.currency_id = cu.id
-                    WHERE ccur.card_id = %s
-                    ORDER BY cu.code
-                    """,
-                    (card_id,),
-                )
-
-                currencies = [
-                    {
-                        "id": currency_id,
-                        "name": currency_name,
-                        "code": currency_code,
-                    }
-                    for (
-                        currency_id,
-                        currency_name,
-                        currency_code
-                    ) in cur.fetchall()
-                ]
-
-                cards.append(
-                    {
-                        "id": eldik_id,
-                        "slug": slug,
-                        "name": name,
-                        "short_desc": short_desc,
-                        "issuance": issuance,
-                        "annual_service": annual_service,
-                        "account_opening": account_opening,
-                        "image": image,
-                        "image_mob": image_mob,
-                        "is_creatable": is_creatable,
-                        "is_available": is_available,
-                        "card_expiration_date": card_expiration_date,
-                        "raw_data": raw_data or {},
-                        "category": (
-                            {
-                                "id": category_id,
-                                "name": category_name,
-                            }
-                            if category_id is not None
-                            else None
-                        ),
-                        "payment_system": (
-                            {
-                                "id": payment_system_id,
-                                "name": payment_system_name,
-                                "image": payment_system_image,
-                                "is_available": payment_system_available,
-                                "is_open": payment_system_open,
-                                "is_active": payment_system_active,
-                            }
-                            if payment_system_id is not None
-                            else None
-                        ),
-                        "currencies": currencies,
-                    }
-                )
-
-            return cards

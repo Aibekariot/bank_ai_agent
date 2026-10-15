@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../models/message.dart';
 import '../services/api_service.dart';
@@ -18,14 +19,13 @@ class _ChatScreenState extends State<ChatScreen> {
   final ScrollController _scrollController = ScrollController();
   final FocusNode _inputFocusNode = FocusNode();
 
+  static const String _greeting =
+      'Здравствуйте! Я AI-консультант Элдик Банка. '
+      'Могу рассказать о кредитах, депозитах, курсах валют '
+      'и помочь с расчётами. Чем могу помочь?';
+
   final List<ChatMessage> _messages = [
-    ChatMessage(
-      role: 'model',
-      text:
-          'Здравствуйте! Я AI-консультант Элдик Банка. '
-          'Могу рассказать о кредитах, депозитах, курсах валют '
-          'и помочь с расчётами. Чем могу помочь?',
-    ),
+    ChatMessage(role: 'model', text: _greeting),
   ];
 
   bool _isLoading = false;
@@ -133,6 +133,61 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  /// Весь диалог одним текстом: "Вопрос: ... / Ответ: ...".
+  /// Приветствие в начале не включается.
+  String _conversationAsText() {
+    final buffer = StringBuffer();
+
+    for (final message in _messages) {
+      if (!message.isUser && message.text == _greeting) continue;
+
+      buffer.writeln(
+        message.isUser ? 'Вопрос: ${message.text}' : 'Ответ: ${message.text}',
+      );
+      buffer.writeln();
+    }
+
+    return buffer.toString().trim();
+  }
+
+  Future<void> _copyConversation() async {
+    final text = _conversationAsText();
+
+    if (text.isEmpty) {
+      _showHint('Пока нечего копировать');
+      return;
+    }
+
+    await Clipboard.setData(ClipboardData(text: text));
+
+    if (!mounted) return;
+    _showHint('Весь диалог скопирован');
+  }
+
+  void _startNewConversation() {
+    if (_isLoading) return;
+
+    setState(() {
+      _messages
+        ..clear()
+        ..add(ChatMessage(role: 'model', text: _greeting));
+    });
+
+    _stickToBottom = true;
+    _showHint('Новый диалог');
+  }
+
+  void _showHint(String text) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(text),
+          duration: const Duration(seconds: 1),
+        ),
+      );
+  }
+
   @override
   void dispose() {
     _scrollController.removeListener(_onScroll);
@@ -150,6 +205,18 @@ class _ChatScreenState extends State<ChatScreen> {
         title: const Text('Элдик Банк — AI-консультант'),
         backgroundColor: Colors.blue.shade700,
         foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.copy_all),
+            tooltip: 'Скопировать весь диалог',
+            onPressed: _copyConversation,
+          ),
+          IconButton(
+            icon: const Icon(Icons.add_comment_outlined),
+            tooltip: 'Новый диалог',
+            onPressed: _isLoading ? null : _startNewConversation,
+          ),
+        ],
       ),
       body: SafeArea(
         child: Column(

@@ -1,0 +1,113 @@
+{
+  "data_date": "2026-10-15",
+  "sections": {
+    "cards": {
+      "documents": 10,
+      "text_chars": 6034,
+      "file_bytes": 23114
+    },
+    "credits": {
+      "documents": 16,
+      "text_chars": 2000,
+      "file_bytes": 17242
+    },
+    "deposits": {
+      "documents": 8,
+      "text_chars": 860,
+      "file_bytes": 11700
+    },
+    "overdraft": {
+      "documents": 1,
+      "text_chars": 2234,
+      "file_bytes": 5515
+    },
+    "transfers": {
+      "documents": 8,
+      "text_chars": 1056,
+      "file_bytes": 4703
+    },
+    "accounts": {
+      "documents": 1,
+      "text_chars": 596,
+      "file_bytes": 1606
+    },
+    "islamic": {
+      "documents": 14,
+      "text_chars": 1397,
+      "file_bytes": 39678
+    },
+    "salary_project": {
+      "documents": 1,
+      "text_chars": 2770,
+      "file_bytes": 5592
+    },
+    "mobile_banking": {
+      "documents": 5,
+      "text_chars": 2369,
+      "file_bytes": 6911
+    },
+    "instructions": {
+      "documents": 1,
+      "text_chars": 704,
+      "file_bytes": 1820
+    },
+    "tariffs": {
+      "documents": 9,
+      "text_chars": 0,
+      "file_bytes": 7073
+    },
+    "legal": {
+      "documents": 4,
+      "text_chars": 67824,
+      "file_bytes": 125991
+    },
+    "locations": {
+      "documents": 233,
+      "text_chars": 0,
+      "file_bytes": 89278
+    }
+  },
+  "gaps": [
+    "cards: файл 'world-elite' не содержит карточки карты (это оболочка страницы); скачайте /api/cards/<slug> и положите в api_cards/",
+    "cards/mastercard-world-elite: нет детальной страницы, условия только из списка (поля null могут означать, что данные лежат в детальной странице)",
+    "cards/visa-infinite: нет детальной страницы, условия только из списка (поля null могут означать, что данные лежат в детальной странице)",
+    "cards/visa-gold: файл тарифов на странице карты относится к Mastercard (01_Mastercard_Gold_Instant_Virtual_RU.pdf), а карта Visa; ссылка не включена, проверьте на сайте",
+    "credits/nakopitelnaya-ipoteka-gik: только краткие условия (shorts), детальной страницы нет",
+    "credits/ekspress-kreditovanie: только краткие условия (shorts), детальной страницы нет",
+    "credits/potrebitelskoe-creditovanie: только краткие условия (shorts), детальной страницы нет",
+    "credits/lgotnoe-finansirovanie-po-gazifikacii-4: только краткие условия (shorts), детальной страницы нет",
+    "credits/avto-v-kredit: только краткие условия (shorts), детальной страницы нет",
+    "credits/kredit-na-zhile: только краткие условия (shorts), детальной страницы нет",
+    "credits/Uluchshenie-kachestva: только краткие условия (shorts), детальной страницы нет",
+    "credits/pokupka-zhilya-na-pervichnom-rynke-kfw: только краткие условия (shorts), детальной страницы нет",
+    "credits/ipoteka-gik-bek-ustun-pokupka-zhilya-na-vtorichnom: только краткие условия (shorts), детальной страницы нет",
+    "credits/ipoteka-gik-ashar-stroitelstvo-individualnogo-zhil: только краткие условия (shorts), детальной страницы нет",
+    "credits/lgotnoe-finansirovanie-avtokredita: только краткие условия (shorts), детальной страницы нет",
+    "credits/kredit-zelenye-produkty: только краткие условия (shorts), детальной страницы нет",
+    "credits/gazifikaciya-gbo: только краткие условия (shorts), детальной страницы нет",
+    "credits/jenskaya-ipoteka-gik: только краткие условия (shorts), детальной страницы нет",
+    "credits/razvitie-ustojchivyh-agroprodovolstvennyhklastero: только краткие условия (shorts), детальной страницы нет",
+    "deposits/srochnyj-depozit-sandyk: только краткие условия, детальной страницы нет",
+    "deposits/depozit-sandyk-plyus: только краткие условия, детальной страницы нет",
+    "deposits/depozit-bakalaj-detskij: только краткие условия, детальной страницы нет",
+    "deposits/depozit-baldarga-zhardam: только краткие условия, детальной страницы нет",
+    "deposits/depozit-kapital-standart-mastercard-standard: только краткие условия, детальной страницы нет",
+    "deposits/depozit-altyn-mastercard-gold: только краткие условия, детальной страницы нет",
+    "deposits/depozit-detskij-mastercard: только краткие условия, детальной страницы нет",
+    "deposits/depozit-eldik-pensionnyj: только краткие условия, детальной страницы нет",
+    "инструкция по смене PIN-кода собрана из строк интерфейса страницы; порядок шагов сверить со страницей сайта",
+    "tariffs: собрано 9 из 18 документов (нужна вторая страница списка)",
+    "tariffs: хранятся только названия и ссылки на PDF, текст тарифов не извлечён",
+    "locations: режим работы не сохраняется (в файлах только снимок статуса); банкоматы есть только в регионах: г. Бишкек"
+  ],
+  "skipped": [
+    "change-pin-code: банкоматы и отделения вынесены в locations.json, инструкция по PIN собрана в раздел instructions",
+    "islamic_window_eldika: отделения вынесены в locations.json",
+    "salary-project: 121 точек вынесены в locations.json"
+  ],
+  "missing_raw_files": [],
+  "homoglyph_fixes": [
+    "Masterсard -> Mastercard"
+  ],
+  "validation_problems": []
+}

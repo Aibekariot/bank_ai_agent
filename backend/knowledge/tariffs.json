@@ -1,0 +1,204 @@
+{
+  "section": "tariffs",
+  "data_date": "2026-10-15",
+  "documents": [
+    {
+      "id": "tariffs/2",
+      "section": "tariffs",
+      "kind": "document_link",
+      "title": "Тарифы на услуги для физических лиц",
+      "slug": "2",
+      "detail_level": "list",
+      "attributes": {
+        "ext": "pdf",
+        "text_extracted": false
+      },
+      "conditions": [],
+      "text": "",
+      "documents": [
+        {
+          "title": "Тарифы на услуги для физических лиц",
+          "url": "https://eldik.kg/media/tariffs/%D0%A2%D0%B0%D1%80%D0%B8%D1%84%D1%8B_%D0%B4%D0%BB%D1%8F_%D1%84%D0%B8%D0%B7%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D1%85_%D0%BB%D0%B8%D1%86_%D1%81_18_g3k3Ohp.08.2026%D0%B3_%D1%84%D0%B8%D0%BD.pdf"
+        }
+      ],
+      "source_url": null,
+      "data_date": "2026-10-15"
+    },
+    {
+      "id": "tariffs/25",
+      "section": "tariffs",
+      "kind": "document_link",
+      "title": "Тарифы по платежным картам VISA Infinite",
+      "slug": "25",
+      "detail_level": "list",
+      "attributes": {
+        "ext": "pdf",
+        "text_extracted": false
+      },
+      "conditions": [],
+      "text": "",
+      "documents": [
+        {
+          "title": "Тарифы по платежным картам VISA Infinite",
+          "url": "https://eldik.kg/media/tariffs/09_Visa_Infinite_RU.pdf"
+        }
+      ],
+      "source_url": null,
+      "data_date": "2026-10-15"
+    },
+    {
+      "id": "tariffs/4",
+      "section": "tariffs",
+      "kind": "document_link",
+      "title": "Тарифы по платежным картам VISA Gold",
+      "slug": "4",
+      "detail_level": "list",
+      "attributes": {
+        "ext": "pdf",
+        "text_extracted": false
+      },
+      "conditions": [],
+      "text": "",
+      "documents": [
+        {
+          "title": "Тарифы по платежным картам VISA Gold",
+          "url": "https://eldik.kg/media/tariffs/07_Visa_Gold_RU.pdf"
+        }
+      ],
+      "source_url": null,
+      "data_date": "2026-10-15"
+    },
+    {
+      "id": "tariffs/32",
+      "section": "tariffs",
+      "kind": "document_link",
+      "title": "Тарифы по картам MasterCard Gold",
+      "slug": "32",
+      "detail_level": "list",
+      "attributes": {
+        "ext": "doc",
+        "text_extracted": false
+      },
+      "conditions": [],
+      "text": "",
+      "documents": [
+        {
+          "title": "Тарифы по картам MasterCard Gold",
+          "url": "https://eldik.kg/media/tariffs/01_Mastercard_Gold_Instant_Virtual_RU.pdf"
+        }
+      ],
+      "source_url": null,
+      "data_date": "2026-10-15"
+    },
+    {
+      "id": "tariffs/34",
+      "section": "tariffs",
+      "kind": "document_link",
+      "title": "Тарифы по выпуску и обслуживанию платежных карт MasterCard для нерезидентов",
+      "slug": "34",
+      "detail_level": "list",
+      "attributes": {
+        "ext": "pdf",
+        "text_extracted": false
+      },
+      "conditions": [],
+      "text": "",
+      "documents": [
+        {
+          "title": "Тарифы по выпуску и обслуживанию платежных карт MasterCard для нерезидентов",
+          "url": "https://eldik.kg/media/tariffs/%D0%A2%D0%B0%D1%80%D0%B8%D1%84%D1%8B_%D0%BF%D0%BE_%D0%B2%D1%8B%D0%BF%D1%83%D1%81%D0%BA%D1%83_%D0%B8_%D0%BE%D0%B1%D1%81%D0%BB%D1%83%D0%B6%D0%B8%D0%B2%D0%B0%D0%BD%D0%B8%D1%8E_%D0%BF%D0%BB%D0%B0%D1%82%D0%B5%D0%B6%D0%BD%D1%8B%D1%85_%D0%BA%D0%B0%D1%80%D1%82_MasterCard_%D0%B4%D0%BB%D1%8F_%D0%BD%D0%B5%D1%80%D0%B5%D0%B7%D0%B8%D0%B4%D0%B5%D0%BD%D1%82%D0%BE%D0%B2.pdf"
+        }
+      ],
+      "source_url": null,
+      "data_date": "2026-10-15"
+    },
+    {
+      "id": "tariffs/35",
+      "section": "tariffs",
+      "kind": "document_link",
+      "title": "Тарифы по выпуску и обслуживанию платежных карт VISA для нерезидентов",
+      "slug": "35",
+      "detail_level": "list",
+      "attributes": {
+        "ext": "pdf",
+        "text_extracted": false
+      },
+      "conditions": [],
+      "text": "",
+      "documents": [
+        {
+          "title": "Тарифы по выпуску и обслуживанию платежных карт VISA для нерезидентов",
+          "url": "https://eldik.kg/media/tariffs/%D0%A2%D0%B0%D1%80%D0%B8%D1%84%D1%8B_%D0%BF%D0%BE_%D0%B2%D1%8B%D0%BF%D1%83%D1%81%D0%BA%D1%83_%D0%B8_%D0%BE%D0%B1%D1%81%D0%BB%D1%83%D0%B6%D0%B8%D0%B2%D0%B0%D0%BD%D0%B8%D1%8E_%D0%BF%D0%BB%D0%B0%D1%82%D0%B5%D0%B6%D0%BD%D1%8B%D1%85_%D0%BA%D0%B0%D1%80%D1%82_VISA_%D0%B4%D0%BB%D1%8F_%D0%BD%D0%B5%D1%80%D0%B5%D0%B7%D0%B8%D0%B4%D0%B5%D0%BD%D1%82%D0%BE%D0%B2.pdf"
+        }
+      ],
+      "source_url": null,
+      "data_date": "2026-10-15"
+    },
+    {
+      "id": "tariffs/29",
+      "section": "tariffs",
+      "kind": "document_link",
+      "title": "Тарифы приложения ELDIK",
+      "slug": "29",
+      "detail_level": "list",
+      "attributes": {
+        "ext": "pdf",
+        "text_extracted": false
+      },
+      "conditions": [],
+      "text": "",
+      "documents": [
+        {
+          "title": "Тарифы приложения ELDIK",
+          "url": "https://eldik.kg/media/tariffs/%D1%82%D0%B0%D1%80%D0%B8%D1%84%D1%8B_%D0%9C%D0%98%D0%91.pdf"
+        }
+      ],
+      "source_url": null,
+      "data_date": "2026-10-15"
+    },
+    {
+      "id": "tariffs/16",
+      "section": "tariffs",
+      "kind": "document_link",
+      "title": "Тарифы по картам MasterCard Standart",
+      "slug": "16",
+      "detail_level": "list",
+      "attributes": {
+        "ext": "pdf",
+        "text_extracted": false
+      },
+      "conditions": [],
+      "text": "",
+      "documents": [
+        {
+          "title": "Тарифы по картам MasterCard Standart",
+          "url": "https://eldik.kg/media/tariffs/%D0%A2%D0%B0%D1%80%D0%B8%D1%84%D1%8B_%D0%BF%D0%BE_%D0%BA%D0%B0%D1%80%D1%82%D0%B0%D0%BC_MasterCard_Standart_%D0%A1%D0%B4%D0%B5%D0%BB%D0%B0%D0%BD%D0%BD%D1%8B%D0%B9.pdf"
+        }
+      ],
+      "source_url": null,
+      "data_date": "2026-10-15"
+    },
+    {
+      "id": "tariffs/23",
+      "section": "tariffs",
+      "kind": "document_link",
+      "title": "Тарифы по выпуску и обслуживанию кредитных карт",
+      "slug": "23",
+      "detail_level": "list",
+      "attributes": {
+        "ext": "pdf",
+        "text_extracted": false
+      },
+      "conditions": [],
+      "text": "",
+      "documents": [
+        {
+          "title": "Тарифы по выпуску и обслуживанию кредитных карт",
+          "url": "https://eldik.kg/media/tariffs/%D0%A2%D0%B0%D1%80%D0%B8%D1%84%D1%8B_%D0%BF%D0%BE_%D0%BA%D1%80%D0%B5%D0%B4%D0%B8%D1%82%D0%BD%D1%8B%D0%BC_%D0%BA%D0%B0%D1%80%D1%82%D0%B0%D0%BC_VISA_%D0%B8_MasterCard_u0QSh4S.pdf"
+        }
+      ],
+      "source_url": null,
+      "data_date": "2026-10-15"
+    }
+  ]
+}

@@ -14,9 +14,12 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
+import time
+
+import dev_log
 from agent import run_chat
 
-app = FastAPI(title="Eldik Bank AI Agent")
+app =FastAPI(title="Eldik Bank AI Agent")
 
 # Для демо разрешаем все origins. В проде сузить до конкретных доменов.
 app.add_middleware(
@@ -52,9 +55,26 @@ def chat(request: ChatRequest):
 
     history = [{"role": m.role, "text": m.text} for m in request.messages]
 
+    # Запись диалога в logs/dialogs.txt (только если в .env DEV_LOG=1).
+    dev_log.start_request()
+    started = time.perf_counter()
+
     try:
         reply = run_chat(history)
     except Exception as exc:  # noqa: BLE001
-        raise HTTPException(status_code=500, detail=str(exc)) from exc
+        dev_log.record(history, "", time.perf_counter() - started, error=str(exc))
+        print(f"[ERROR] {type(exc).__name__}: {exc}")  # подробности только в логе сервера
 
+        # Клиенту отдаём короткое безопасное сообщение, без внутренних деталей.
+        if "429" in str(exc):
+            raise HTTPException(
+                status_code=503,
+                detail="Сервис сейчас перегружен. Повторите вопрос через минуту.",
+            ) from exc
+        raise HTTPException(
+            status_code=500,
+            detail="Не удалось получить ответ. Попробуйте ещё раз.",
+        ) from exc
+
+    dev_log.record(history, reply, time.perf_counter() - started)
     return ChatResponse(reply=reply)

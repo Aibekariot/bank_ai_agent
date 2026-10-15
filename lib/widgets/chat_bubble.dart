@@ -2,6 +2,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:markdown/markdown.dart' as md;
 
@@ -84,6 +85,22 @@ class ChatBubble extends StatelessWidget {
     return output.join('\n').trim();
   }
 
+  /// Копирует сообщение целиком (исходный текст, без адаптации таблиц).
+  Future<void> _copyWholeMessage(BuildContext context) async {
+    await Clipboard.setData(ClipboardData(text: message.text));
+
+    if (!context.mounted) return;
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        const SnackBar(
+          content: Text('Сообщение скопировано'),
+          duration: Duration(seconds: 1),
+        ),
+      );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isUser = message.isUser;
@@ -131,39 +148,70 @@ class ChatBubble extends StatelessWidget {
       ),
     );
 
+    final bubble = Container(
+      constraints: BoxConstraints(maxWidth: maxBubbleWidth),
+      margin: const EdgeInsets.symmetric(
+        vertical: 4,
+        horizontal: 10,
+      ),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 14,
+        vertical: 10,
+      ),
+      decoration: BoxDecoration(
+        color: isUser
+            ? Colors.blue.shade700
+            : theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: isUser
+          ? SelectableText(
+              displayText,
+              style: TextStyle(
+                color: textColor,
+                fontSize: 15,
+                height: 1.45,
+              ),
+            )
+          : MarkdownBody(
+              data: displayText,
+              selectable: true,
+              extensionSet: md.ExtensionSet.gitHubWeb,
+              styleSheet: markdownStyle,
+            ),
+    );
+
+    final mutedColor = theme.colorScheme.onSurfaceVariant;
+
+    final copyButton = Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: () => _copyWholeMessage(context),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.copy, size: 14, color: mutedColor),
+              const SizedBox(width: 4),
+              Text(
+                'Копировать',
+                style: TextStyle(fontSize: 12, color: mutedColor),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        constraints: BoxConstraints(maxWidth: maxBubbleWidth),
-        margin: const EdgeInsets.symmetric(
-          vertical: 4,
-          horizontal: 10,
-        ),
-        padding: const EdgeInsets.symmetric(
-          horizontal: 14,
-          vertical: 10,
-        ),
-        decoration: BoxDecoration(
-          color: isUser
-              ? Colors.blue.shade700
-              : theme.colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: isUser
-            ? SelectableText(
-                displayText,
-                style: TextStyle(
-                  color: textColor,
-                  fontSize: 15,
-                  height: 1.45,
-                ),
-              )
-            : MarkdownBody(
-                data: displayText,
-                selectable: true,
-                extensionSet: md.ExtensionSet.gitHubWeb,
-                styleSheet: markdownStyle,
-              ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment:
+            isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        children: [bubble, copyButton],
       ),
     );
   }

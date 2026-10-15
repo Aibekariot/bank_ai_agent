@@ -95,6 +95,16 @@ class OpenRouterProvider(LLMProvider):
             json=payload,
         )
 
+        # Бесплатные модели часто отвечают 429 (лимит запросов): один
+        # повтор через несколько секунд обычно помогает.
+        if response.status_code == 429:
+            print("[LLM] OpenRouter 429, повтор через 4 с")
+            time.sleep(4)
+            response = self.client.post(
+                OPENROUTER_URL,
+                json=payload,
+            )
+
         elapsed = time.perf_counter() - started
 
         print(

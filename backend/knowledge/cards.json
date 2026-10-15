@@ -1,0 +1,357 @@
+{
+  "section": "cards",
+  "data_date": "2026-10-15",
+  "documents": [
+    {
+      "id": "cards/mastercard-world-elite",
+      "section": "cards",
+      "kind": "info",
+      "title": "Mastercard World Elite",
+      "slug": "mastercard-world-elite",
+      "detail_level": "list",
+      "attributes": {
+        "category": "Премиум",
+        "payment_system": "Mastercard",
+        "audience": "individual",
+        "currencies": [
+          "USD",
+          "СОМ"
+        ],
+        "issuance": null,
+        "annual_service": "10 000 сом",
+        "account_opening": null,
+        "card_expiration_date": "5 лет",
+        "is_available": true,
+        "is_creatable": false
+      },
+      "conditions": [],
+      "text": "Mastercard World Elite — премиальная карта «Элдик Банка» с безлимитным доступом в бизнес-залы аэропортов, услугой Fast Track, 3 ГБ бесплатного интернета в роуминге ежегодно и кешбэком 2% на все безналичные операции. Срок действия — 5 лет.",
+      "documents": [],
+      "source_url": "https://eldik.kg/ru/payment-cards/mastercard-world-elite",
+      "data_date": "2026-10-15"
+    },
+    {
+      "id": "cards/virtualnye-karty",
+      "section": "cards",
+      "kind": "info",
+      "title": "Виртуальные карты",
+      "slug": "virtualnye-karty",
+      "detail_level": "detail",
+      "attributes": {
+        "category": "Виртуальные карты",
+        "payment_system": "Виртуальные карты",
+        "audience": "individual",
+        "currencies": [
+          "EUR",
+          "USD",
+          "СОМ"
+        ],
+        "issuance": "Бесплатно",
+        "annual_service": "Бесплатно",
+        "account_opening": null,
+        "card_expiration_date": null,
+        "is_available": true,
+        "is_creatable": false
+      },
+      "conditions": [],
+      "text": "Электронный аналог обычной банковской карты, которая существует только в цифровом виде.\nТеперь в приложении Eldik доступны виртуальные карты Visa и MasterCard на самых выгодных условиях!\nВиртуальная карта - это ваш надежный помощник для онлайн-покупок, подписок и переводов. Она доступна 24/7, а главное - никаких лишних расходов на выпуск и обслуживание!\nОформите карту прямо в приложении Eldik всего за пару минут и начните пользоваться уже сегодня.\n• Откройте приложение Eldik\n• В меню «Продукты» → «Мои финансы»\n• Нажмите «Заказать виртуальную карту»\n• Выберите карту и филиал, подтвердите заявление и оферту, введите смс-код\nЧерез 5 минут карта будет готова к использованию!\nЧто такое виртуальная карта?\nЭто электронный аналог обычной банковской карты, которая существует только в цифровом виде.\nВиртуальные карты Visa и MasterCard от «Элдик Банка» - управляйте своими деньгами с помощью надежной цифровой карты в любое время и в любом месте бесплатно.\nТеперь в приложении Eldik доступны виртуальные карты Visa и MasterCard на самых выгодных условиях:\nВыпуск карты – БЕСПЛАТНО\nГодовое обслуживание – БЕСПЛАТНО\nВалюта - сомы, доллары США и евро\nСрок действия – 3 года\nПреимущества:\n• Интернет – платежи",
+      "documents": [],
+      "source_url": "https://eldik.kg/ru/payment-cards/virtualnye-karty",
+      "data_date": "2026-10-15"
+    },
+    {
+      "id": "cards/elkart-beskontakt",
+      "section": "cards",
+      "kind": "info",
+      "title": "ЭЛКАРТ - Бесконтакт",
+      "slug": "elkart-beskontakt",
+      "detail_level": "detail",
+      "attributes": {
+        "category": "Дебетовые карты",
+        "payment_system": "Элкарт",
+        "audience": "individual",
+        "currencies": [
+          "СОМ"
+        ],
+        "issuance": "350 сом",
+        "annual_service": null,
+        "account_opening": null,
+        "card_expiration_date": "5 лет",
+        "is_available": true,
+        "is_creatable": true
+      },
+      "conditions": [],
+      "text": "Бесконтактная карта национальной платежной системы Элкарт.\nОткрытие счета - Бесплатно\nГодовое обслуживание – 100 сом\nНеснижаемый остаток - 100 сом\nПеревыпуск карты по истечении срока действия – 350 сом\nУслуги: Мобильный банкинг, Интернет покупки\nПреимущества:\n• Интернет – платежи\n• Бесконтактная оплата\n• PUSH – уведомления",
+      "documents": [
+        {
+          "title": "Подробная информация о бесконтактных картах Элкарт",
+          "url": "https://eldik.kg/media/cards/docs/%D0%BF%D0%B0%D0%BC%D1%8F%D1%82%D0%BA%D0%B0_2024.pdf"
+        },
+        {
+          "title": "Правила по платежной карте Элкарт",
+          "url": "https://eldik.kg/media/cards/docs/Elkart_rules_lrJW8JE.pdf"
+        },
+        {
+          "title": "Тарифы и условия (PDF)",
+          "url": "https://eldik.kg/media/cards/tariff_term_files/%D0%A2%D0%B0%D1%80%D0%B8%D1%84%D1%8B_%D0%BF%D0%BE_%D0%BA%D0%B0%D1%80%D1%82%D0%B0%D0%BC_%D0%AD%D0%BB%D0%BA%D0%B0%D1%80%D1%82-%D0%91%D0%B5%D1%81%D0%BA%D0%BE%D0%BD%D1%82%D0%B0%D0%BA%D1%82.pdf"
+        }
+      ],
+      "source_url": "https://eldik.kg/ru/payment-cards/elkart-beskontakt",
+      "data_date": "2026-10-15"
+    },
+    {
+      "id": "cards/elkart-socialnye-vyplaty",
+      "section": "cards",
+      "kind": "info",
+      "title": "ЭЛКАРТ - Социальные выплаты",
+      "slug": "elkart-socialnye-vyplaty",
+      "detail_level": "detail",
+      "attributes": {
+        "category": "Дебетовые карты",
+        "payment_system": "Элкарт",
+        "audience": "individual",
+        "currencies": [
+          "СОМ"
+        ],
+        "issuance": "Бесплатно",
+        "annual_service": null,
+        "account_opening": null,
+        "card_expiration_date": "5 лет",
+        "is_available": true,
+        "is_creatable": false
+      },
+      "conditions": [],
+      "text": "«ЭЛКАРТ» - «Социальные выплаты» - это социальная карта позволяет обеспечить удобство и безопасность получения социальных выплат и пособий. С помощью социальной карты можно оплачивать различные услуги, в том числе жилищно-коммунальные, налоги, рассчитываться за товары в магазинах.\n(для \"БАЛА ЫРЫСЫ\" и других продуктов)\nУслуги: Мобильный банкинг, Интернет покупки\nПреимущества:\n• Денежные выплаты органов социальной защиты населения\n• удобство использования денежных средств с социальной карты\n• Возможность оплачивать коммунальные услуги\n• Вы можете без комиссий произвести оплату товаров и услуг в магазинах",
+      "documents": [
+        {
+          "title": "Правила по платежным картам ЭЛКАРТ",
+          "url": "https://eldik.kg/media/cards/docs/Elkart_rules_wo5nWrQ_cIeFeyU.pdf"
+        },
+        {
+          "title": "Тарифы и условия (PDF)",
+          "url": "https://eldik.kg/media/cards/tariff_term_files/%D0%A2%D0%B0%D1%80%D0%B8%D1%84%D1%8B_%D0%BF%D0%BE_%D0%BA%D0%B0%D1%80%D1%82%D0%B0%D0%BC_%D0%AD%D0%BB%D0%BA%D0%B0%D1%80%D1%82-%D0%A1%D0%BE%D1%86%D0%B8%D0%B0%D0%BB%D1%8C%D0%BD%D1%8B%D0%B5_%D0%B2%D1%8B%D0%BF%D0%BB%D0%B0%D1%82%D1%8B.pdf"
+        }
+      ],
+      "source_url": "https://eldik.kg/ru/payment-cards/elkart-socialnye-vyplaty",
+      "data_date": "2026-10-15"
+    },
+    {
+      "id": "cards/elkart-karta-pensionera",
+      "section": "cards",
+      "kind": "info",
+      "title": "ЭЛКАРТ - Карта пенсионера",
+      "slug": "elkart-karta-pensionera",
+      "detail_level": "detail",
+      "attributes": {
+        "category": "Дебетовые карты",
+        "payment_system": "Элкарт",
+        "audience": "individual",
+        "currencies": [
+          "СОМ"
+        ],
+        "issuance": null,
+        "annual_service": "Бесплатно",
+        "account_opening": null,
+        "card_expiration_date": "5 лет",
+        "is_available": true,
+        "is_creatable": true
+      },
+      "conditions": [],
+      "text": "Платежная карта «ЭЛКАРТ» - доступный, надежный, безопасный банковский продукт, предназначенный для осуществления безналичных расчетов, получения заработной платы, пенсий, пособий, а также для осуществления платежей в бюджет за различные виды государственных услуг населению, оплаты налогов, таможенных пошлин, страховых взносов и т.д\nПлатежная карта «ЭЛКАРТ» - доступный, надежный, безопасный банковский продукт, предназначенный для осуществления безналичных расчетов, получения заработной платы, пенсий, пособий, а также для осуществления платежей в бюджет за различные виды государственных услуг населению, оплаты налогов, таможенных пошлин, страховых взносов и т.д.\nУслуги: Мобильный банкинг, Интернет покупки",
+      "documents": [
+        {
+          "title": "Тарифы и условия (PDF)",
+          "url": "https://eldik.kg/media/cards/tariff_term_files/%D0%A2%D0%B0%D1%80%D0%B8%D1%84%D1%8B_%D0%BF%D0%BE_%D0%BA%D0%B0%D1%80%D1%82%D0%B0%D0%BC_%D0%AD%D0%BB%D0%BA%D0%B0%D1%80%D1%82-%D0%9A%D0%B0%D1%80%D1%82%D0%B0_%D0%BF%D0%B5%D0%BD%D1%81%D0%B8%D0%BE%D0%BD%D0%B5%D1%80%D0%B0.pdf"
+        }
+      ],
+      "source_url": "https://eldik.kg/ru/payment-cards/elkart-karta-pensionera",
+      "data_date": "2026-10-15"
+    },
+    {
+      "id": "cards/elkart-bisuness",
+      "section": "cards",
+      "kind": "info",
+      "title": "ЭЛКАРТ Бизнес",
+      "slug": "elkart-bisuness",
+      "detail_level": "detail",
+      "attributes": {
+        "category": "Бизнес",
+        "payment_system": "Элкарт",
+        "audience": "business",
+        "currencies": [
+          "СОМ"
+        ],
+        "issuance": null,
+        "annual_service": "200 сом",
+        "account_opening": null,
+        "card_expiration_date": "5 лет",
+        "is_available": true,
+        "is_creatable": false
+      },
+      "conditions": [],
+      "text": "ЭЛКАРТ Бизнес - карта для юридических лиц или индивидуальных предпринимателей.\n\"ЭЛКАРТ Бизнес\" предназначена для целей компании при выдаче подотчетных сумм, безналичной оплате товаров и услуг, получения выручки от продажи товаров и услуг безналичным способом. Карта является средством доступа к банковскому счету и инструментом для управления средствами на счете\nУслуги: Интернет покупки\nПреимущества:\n• Контроль и анализ командировочных расходов сотрудников\n• Сокращение операционных расходов и времени, связанных с выдачей подотчётных сумм\n• К одному счёту компании может быть привязано несколько банковских карт с установленными лимитами\n• Безналичная оплата по карте\n• Разделение личных и деловых статей расхода\n• Контроль и анализ оборота денежных средств по корпоративной карте\n• Возможность установление лимитов на расходования средств\n• Возможность осуществлять бесконтактные платежи в рамках лимита",
+      "documents": [
+        {
+          "title": "Правила по платежной карте Элкарт Бизнес",
+          "url": "https://eldik.kg/media/cards/docs/Elkart_business_rules_russia.pdf"
+        },
+        {
+          "title": "Тарифы и условия (PDF)",
+          "url": "https://eldik.kg/media/cards/tariff_term_files/%D0%A2%D0%B0%D1%80%D0%B8%D1%84%D1%8B_%D0%BF%D0%BE_%D0%BA%D0%B0%D1%80%D1%82%D0%B0%D0%BC_%D0%AD%D0%BB%D0%BA%D0%B0%D1%80%D1%82-%D0%91%D0%B8%D0%B7%D0%BD%D0%B5%D1%81.pdf"
+        }
+      ],
+      "source_url": "https://eldik.kg/ru/payment-cards/elkart-bisuness",
+      "data_date": "2026-10-15"
+    },
+    {
+      "id": "cards/visa-infinite",
+      "section": "cards",
+      "kind": "info",
+      "title": "Visa Infinite",
+      "slug": "visa-infinite",
+      "detail_level": "list",
+      "attributes": {
+        "category": "Премиум",
+        "payment_system": "Visa",
+        "audience": "individual",
+        "currencies": [
+          "СОМ",
+          "USD"
+        ],
+        "issuance": "Бесплатно",
+        "annual_service": null,
+        "account_opening": null,
+        "card_expiration_date": "5 лет",
+        "is_available": true,
+        "is_creatable": false
+      },
+      "conditions": [],
+      "text": "Премиальная карта высшего уровня в системе Visa International.",
+      "documents": [
+        {
+          "title": "Актуальные предложения Visa Infinite",
+          "url": "https://eldik.kg/media/cards/docs/Visa_KG_Monthly_Digest_Affluent_RU_july.cleaned.pdf"
+        },
+        {
+          "title": "Перечень услуг Консьерж сервис",
+          "url": "https://eldik.kg/media/cards/docs/conserj_service.pdf"
+        },
+        {
+          "title": "Правила по платежной карте Visa Infinite",
+          "url": "https://eldik.kg/media/cards/docs/Visa_Rules_h7J6Xz8.pdf"
+        }
+      ],
+      "source_url": "https://eldik.kg/ru/payment-cards/visa-infinite",
+      "data_date": "2026-10-15"
+    },
+    {
+      "id": "cards/visa-gold",
+      "section": "cards",
+      "kind": "info",
+      "title": "Visa Gold",
+      "slug": "visa-gold",
+      "detail_level": "detail",
+      "attributes": {
+        "category": "Дебетовые карты",
+        "payment_system": "Visa",
+        "audience": "individual",
+        "currencies": [
+          "EUR",
+          "USD",
+          "СОМ"
+        ],
+        "issuance": "Бесплатно",
+        "annual_service": null,
+        "account_opening": null,
+        "card_expiration_date": "5 лет",
+        "is_available": true,
+        "is_creatable": true
+      },
+      "conditions": [],
+      "text": "Международная платежная карта предназначена для клиентов, желающих получить доступ к финансовым услугам, включая повышенные лимиты, возможность использования карты по всему миру.\nОткрытие счета - Бесплатно\nГодовое обслуживание 1-й год - бесплатно для сомовых счетов; 7 $ — для USD-счетов; 7 € — для EUR-счетов\nГодовое обслуживание в последующие годы - 500 сом для сомовых счетов; 7 $ — для USD-счетов; 7 € — для EUR-счетов\nНеснижаемый остаток - 100 сом, 2 $, 2 €\nПеревыпуск карты по истечении срока действия – Бесплатно\nУслуги: Мобильный банкинг, Интернет покупки\nПреимущества:\n• Бесконтактная оплата\n• Интернет – платежи\n• PUSH – уведомления",
+      "documents": [
+        {
+          "title": "Правила по платежной карте Visa Gold",
+          "url": "https://eldik.kg/media/cards/docs/Visa_Rules_uTQ3JWu.pdf"
+        }
+      ],
+      "source_url": "https://eldik.kg/ru/payment-cards/visa-gold",
+      "data_date": "2026-10-15"
+    },
+    {
+      "id": "cards/visa-business",
+      "section": "cards",
+      "kind": "info",
+      "title": "Visa Business",
+      "slug": "visa-business",
+      "detail_level": "detail",
+      "attributes": {
+        "category": "Бизнес",
+        "payment_system": "Visa",
+        "audience": "business",
+        "currencies": [
+          "USD",
+          "СОМ"
+        ],
+        "issuance": "Бесплатно",
+        "annual_service": null,
+        "account_opening": null,
+        "card_expiration_date": "5 лет",
+        "is_available": true,
+        "is_creatable": false
+      },
+      "conditions": [],
+      "text": "Карты Visa Business предназначены для проведения различных ежедневных платежей для юридических лиц или индивидуальных предпринимателей.\nОткрытие счета - Бесплатно\nГодовое обслуживание – 500 сом, 7 $\nПеревыпуск карты по истечении срока действия – Бесплатно\nУслуги: Мобильный банкинг, Интернет покупки\nПреимущества:\n• Производить безналичную оплату товаров и услуг в Кыргызстане и за границей\n• Упрощение финансового контроля\n• Управление движением деловых расходов\n• Разделение корпоративных и личных расходов\n• Упрощение контроля командировочных и представительских расходов\n• Установление индивидуальных лимитов",
+      "documents": [
+        {
+          "title": "Правила по платежным картам VISA Business",
+          "url": "https://eldik.kg/media/cards/docs/Visa_Rules_CPq1XVe.pdf"
+        },
+        {
+          "title": "Тарифы и условия (PDF)",
+          "url": "https://eldik.kg/media/cards/tariff_term_files/%D0%A2%D0%B0%D1%80%D0%B8%D1%84%D1%8B_%D0%BF%D0%BE_%D0%BA%D0%B0%D1%80%D1%82%D0%B0%D0%BC_VISA_Business.pdf"
+        }
+      ],
+      "source_url": "https://eldik.kg/ru/payment-cards/visa-business",
+      "data_date": "2026-10-15"
+    },
+    {
+      "id": "cards/mastercardgold",
+      "section": "cards",
+      "kind": "info",
+      "title": "Mastercard Gold",
+      "slug": "mastercardgold",
+      "detail_level": "detail",
+      "attributes": {
+        "category": "Премиум",
+        "payment_system": "Mastercard",
+        "audience": "individual",
+        "currencies": [
+          "EUR",
+          "USD",
+          "СОМ"
+        ],
+        "issuance": "Бесплатно",
+        "annual_service": null,
+        "account_opening": null,
+        "card_expiration_date": "5 лет",
+        "is_available": true,
+        "is_creatable": true
+      },
+      "conditions": [],
+      "text": "Международная платежная карта, которая предоставляет клиентам различные преимущества и выгодные предложения, оплата в любых магазинах, отелях по всему миру доступные только держателям карт этой категории, а также повышенный уровень защиты Вас и Ваших средств.\nОткрытие счета - Бесплатно\nГодовое обслуживание 1-й год - бесплатно для сомовых счетов; 7 $ — для USD-счетов; 7 € — для EUR-счетов\nГодовое обслуживание в последующие годы - 500 сом для сомовых счетов; 7 $ — для USD-счетов; 7 € — для EUR-счетов\nНеснижаемый остаток - 100 сом, 2 $, 2 €\nПеревыпуск карты по истечении срока действия – Бесплатно\nУслуги: Мобильный банкинг, Интернет покупки\nПреимущества:\n• PUSH – уведомления\n• Интернет – платежи\n• Бесконтактная оплата",
+      "documents": [
+        {
+          "title": "Правила по платежной карте Mastercard",
+          "url": "https://eldik.kg/media/cards/docs/Visa_Rules_Wr40wFg.pdf"
+        },
+        {
+          "title": "Тарифы и условия (PDF)",
+          "url": "https://eldik.kg/media/cards/tariff_term_files/%D0%A2%D0%B0%D1%80%D0%B8%D1%84%D1%8B_%D0%BF%D0%BE_%D0%BA%D0%B0%D1%80%D1%82%D0%B0%D0%BC_MasterCard_Gold_bThEE1K.pdf"
+        }
+      ],
+      "source_url": "https://eldik.kg/ru/payment-cards/mastercardgold",
+      "data_date": "2026-10-15"
+    }
+  ]
+}

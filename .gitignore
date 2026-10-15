@@ -65,3 +65,4 @@ __pycache__/
 .dart_tool/
 build/
 
+backend/logs/

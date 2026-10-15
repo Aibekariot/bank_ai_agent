@@ -1,0 +1,338 @@
+{
+  "section": "deposits",
+  "data_date": "2026-10-15",
+  "documents": [
+    {
+      "id": "deposits/srochnyj-depozit-sandyk",
+      "section": "deposits",
+      "kind": "info",
+      "title": "Срочный депозит «Сандык»",
+      "slug": "srochnyj-depozit-sandyk",
+      "detail_level": "list",
+      "attributes": {
+        "is_available": true,
+        "is_creatable": true
+      },
+      "conditions": [
+        {
+          "key": "Срок депозита",
+          "value": "до 84 месяцев"
+        },
+        {
+          "key": "Ставка",
+          "value": "до 14% годовых"
+        },
+        {
+          "key": "Валюта депозита",
+          "value": "сом, доллар, рубль, евро, юань"
+        },
+        {
+          "key": "Минимальная сумма первоначального вклада",
+          "value": "1000 сом"
+        },
+        {
+          "key": "Выплата процентов",
+          "value": "Ежемесячно"
+        }
+      ],
+      "text": "Депозит «Сандык» от «Элдик Банка» - Ваши сбережения под нашей защитой!",
+      "documents": [],
+      "source_url": "https://eldik.kg/ru/depozits",
+      "data_date": "2026-10-15"
+    },
+    {
+      "id": "deposits/depozit-sandyk-plyus",
+      "section": "deposits",
+      "kind": "info",
+      "title": "Срочный депозит «Сандык Плюс»",
+      "slug": "depozit-sandyk-plyus",
+      "detail_level": "list",
+      "attributes": {
+        "is_available": true,
+        "is_creatable": true
+      },
+      "conditions": [
+        {
+          "key": "Минимальная сумма первоначального вклада",
+          "value": "1000 сом / 10 долларов США / 1000 рублей"
+        },
+        {
+          "key": "Валюта депозита",
+          "value": "сом, доллар США, российский рубль"
+        },
+        {
+          "key": "Срок депозита",
+          "value": "до 84 месяцев"
+        },
+        {
+          "key": "Минимальная сумма пополнения",
+          "value": "1000 сом / 10 долларов США / 1000 рублей"
+        },
+        {
+          "key": "Выплата процентов",
+          "value": "Ежемесячно"
+        },
+        {
+          "key": "Ставка",
+          "value": "до 13,5%"
+        }
+      ],
+      "text": "Представляем Вашему вниманию срочный депозит «Сандык Плюс» с возможностью пополнения!",
+      "documents": [],
+      "source_url": "https://eldik.kg/ru/depozits",
+      "data_date": "2026-10-15"
+    },
+    {
+      "id": "deposits/depozit-bakalaj-detskij",
+      "section": "deposits",
+      "kind": "info",
+      "title": "Депозит «Балакай» - детский",
+      "slug": "depozit-bakalaj-detskij",
+      "detail_level": "list",
+      "attributes": {
+        "is_available": true,
+        "is_creatable": true
+      },
+      "conditions": [
+        {
+          "key": "Ставка",
+          "value": "до 11% годовых"
+        },
+        {
+          "key": "Минимальная сумма первоначального вклада",
+          "value": "5000 сом / 100 долларов США"
+        },
+        {
+          "key": "Валюта депозита",
+          "value": "сом, доллар США"
+        },
+        {
+          "key": "Срок депозита",
+          "value": "до 18 лет"
+        },
+        {
+          "key": "Минимальная сумма пополнения",
+          "value": "1000 сом / 20 долларов США"
+        },
+        {
+          "key": "Начисление процентов",
+          "value": "Ежедневно, с ежегодной капитализацией"
+        }
+      ],
+      "text": "Откройте депозит «Балакай» до 18-летия вашего ребенка - самый долгосрочный и самый выгодный детский депозит в Кыргызстане !",
+      "documents": [],
+      "source_url": "https://eldik.kg/ru/depozits",
+      "data_date": "2026-10-15"
+    },
+    {
+      "id": "deposits/depozit-baldarga-zhardam",
+      "section": "deposits",
+      "kind": "info",
+      "title": "Срочный депозит «Балдарга жардам»",
+      "slug": "depozit-baldarga-zhardam",
+      "detail_level": "list",
+      "attributes": {
+        "is_available": true,
+        "is_creatable": true
+      },
+      "conditions": [
+        {
+          "key": "Валюта депозита",
+          "value": "сом, доллар США"
+        },
+        {
+          "key": "Срок депозита",
+          "value": "до 36 месяцев"
+        },
+        {
+          "key": "Минимальная сумма первоначального вклада",
+          "value": "100 000 сом / 1 500 долларов США"
+        },
+        {
+          "key": "Ставка",
+          "value": "до 11% годовых"
+        },
+        {
+          "key": "Дополнительные взносы",
+          "value": "Возможны"
+        },
+        {
+          "key": "Частичное снятие",
+          "value": "Не предусмотрено"
+        },
+        {
+          "key": "Сумма допвзносов",
+          "value": "Без ограничения"
+        },
+        {
+          "key": "Начисление процентов",
+          "value": "Ежемесячно"
+        },
+        {
+          "key": "Выплата вклада",
+          "value": "По окончанию срока"
+        }
+      ],
+      "text": "",
+      "documents": [],
+      "source_url": "https://eldik.kg/ru/depozits",
+      "data_date": "2026-10-15"
+    },
+    {
+      "id": "deposits/depozit-kapital-standart-mastercard-standard",
+      "section": "deposits",
+      "kind": "info",
+      "title": "Депозит «Капитал Стандарт»",
+      "slug": "depozit-kapital-standart-mastercard-standard",
+      "detail_level": "list",
+      "attributes": {
+        "is_available": true,
+        "is_creatable": true
+      },
+      "conditions": [
+        {
+          "key": "Минимальная сумма вклада",
+          "value": "30 000 сом / 1000 долларов США"
+        },
+        {
+          "key": "Валюта депозита",
+          "value": "сом, доллар США"
+        },
+        {
+          "key": "Срок депозита",
+          "value": "до 36 месяцев"
+        },
+        {
+          "key": "Ставка",
+          "value": "до 11% годовых"
+        },
+        {
+          "key": "Минимальная сумма пополнения",
+          "value": "Без ограничений"
+        }
+      ],
+      "text": "Недоступен для новых клиентов.\nДействующие клиенты будут обслуживаться до конца срока действия на прежних условиях.",
+      "documents": [],
+      "source_url": "https://eldik.kg/ru/depozits",
+      "data_date": "2026-10-15"
+    },
+    {
+      "id": "deposits/depozit-altyn-mastercard-gold",
+      "section": "deposits",
+      "kind": "info",
+      "title": "Депозит «Алтын» по Mastercard Gold",
+      "slug": "depozit-altyn-mastercard-gold",
+      "detail_level": "list",
+      "attributes": {
+        "is_available": true,
+        "is_creatable": true
+      },
+      "conditions": [
+        {
+          "key": "Минимальная сумма вклада",
+          "value": "100 000 сом / 1500 долларов США"
+        },
+        {
+          "key": "Валюта депозита",
+          "value": "сом, доллар США"
+        },
+        {
+          "key": "Срок депозита",
+          "value": "до 36 месяцев"
+        },
+        {
+          "key": "Ставка",
+          "value": "до 6% годовых"
+        },
+        {
+          "key": "Минимальная сумма пополнения",
+          "value": "Без ограничений"
+        }
+      ],
+      "text": "Временно недоступен для открытия.\nС картами Mastercard всегда легко и удобно, ведь нужная сумма денег всегда под рукой. Кроме того, Mastercard гарантирует абсолютную безопасность Ваших средств.\nИспользуйте Mastercard от «Элдик Банка» при оплате услуг и покупках в магазинах, кафе и ресторанах, в путешествиях!",
+      "documents": [],
+      "source_url": "https://eldik.kg/ru/depozits",
+      "data_date": "2026-10-15"
+    },
+    {
+      "id": "deposits/depozit-detskij-mastercard",
+      "section": "deposits",
+      "kind": "info",
+      "title": "Депозит «Детский»",
+      "slug": "depozit-detskij-mastercard",
+      "detail_level": "list",
+      "attributes": {
+        "is_available": true,
+        "is_creatable": true
+      },
+      "conditions": [
+        {
+          "key": "Минимальная сумма вклада",
+          "value": "5000 сом / 100 долларов США"
+        },
+        {
+          "key": "Валюта",
+          "value": "сом, доллар США"
+        },
+        {
+          "key": "Открытие счета",
+          "value": "бесплатно"
+        },
+        {
+          "key": "Срок депозита",
+          "value": "до 60 месяцев"
+        },
+        {
+          "key": "Ставка",
+          "value": "до 12% годовых"
+        }
+      ],
+      "text": "",
+      "documents": [],
+      "source_url": "https://eldik.kg/ru/depozits",
+      "data_date": "2026-10-15"
+    },
+    {
+      "id": "deposits/depozit-eldik-pensionnyj",
+      "section": "deposits",
+      "kind": "info",
+      "title": "Депозит «Элдик Пенсионный»",
+      "slug": "depozit-eldik-pensionnyj",
+      "detail_level": "list",
+      "attributes": {
+        "is_available": true,
+        "is_creatable": true
+      },
+      "conditions": [
+        {
+          "key": "Срок депозита",
+          "value": "12, 24 или 36 месяцев"
+        },
+        {
+          "key": "Ставка",
+          "value": "До 13% годовых"
+        },
+        {
+          "key": "Минимальная сумма депозита",
+          "value": "от 5000 сомов или 50 долларов США"
+        },
+        {
+          "key": "Валюта депозита",
+          "value": "сомы (KGS) или доллары (USD)"
+        },
+        {
+          "key": "Выплата процентов",
+          "value": "Ежемесячно"
+        },
+        {
+          "key": "Возможность пополнения",
+          "value": "есть"
+        }
+      ],
+      "text": "Элдик Банк запустил новый депозит «Элдик Пенсионный», который позволяет пенсионерам получать стабильный доход и быть уверенными в надёжности своих сбережений.",
+      "documents": [],
+      "source_url": "https://eldik.kg/ru/depozits",
+      "data_date": "2026-10-15"
+    }
+  ]
+}

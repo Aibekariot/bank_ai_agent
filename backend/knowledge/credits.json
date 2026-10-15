@@ -1,0 +1,465 @@
+{
+  "section": "credits",
+  "data_date": "2026-10-15",
+  "documents": [
+    {
+      "id": "credits/nakopitelnaya-ipoteka-gik",
+      "section": "credits",
+      "kind": "info",
+      "title": "Накопительная ипотека - ГИК",
+      "slug": "nakopitelnaya-ipoteka-gik",
+      "detail_level": "list",
+      "attributes": {
+        "is_creatable": true
+      },
+      "conditions": [
+        {
+          "key": "Процентная ставка",
+          "value": "10% годовых"
+        },
+        {
+          "key": "Срок кредита",
+          "value": "до 5 лет"
+        },
+        {
+          "key": "Первоначальный взнос",
+          "value": "не менее 10%"
+        }
+      ],
+      "text": "Совместный продукт ОАО «Элдик Банк» и ОАО «ГИК» для участия в государственной жилищной программе «Менин үйүм» по механизму «Долевое участие»",
+      "documents": [],
+      "source_url": "https://eldik.kg/ru/credits/nakopitelnaya-ipoteka-gik",
+      "data_date": "2026-10-15"
+    },
+    {
+      "id": "credits/ekspress-kreditovanie",
+      "section": "credits",
+      "kind": "info",
+      "title": "Экспресс-кредитование",
+      "slug": "ekspress-kreditovanie",
+      "detail_level": "list",
+      "attributes": {
+        "is_creatable": true
+      },
+      "conditions": [
+        {
+          "key": "Срок кредита",
+          "value": "до 36 месяцев"
+        },
+        {
+          "key": "Сумма кредита",
+          "value": "до 500 000 сом"
+        },
+        {
+          "key": "Ставка",
+          "value": "21% годовых"
+        },
+        {
+          "key": "Беззалоговое",
+          "value": "Обеспечение"
+        }
+      ],
+      "text": "Экспресс-кредитование - это вид потребительского кредитования, при котором рассмотрение заявки происходит за максимально короткий срок, с минимальным пакетом документов и простыми требованиями к заемщику.",
+      "documents": [],
+      "source_url": "https://eldik.kg/ru/credits/ekspress-kreditovanie",
+      "data_date": "2026-10-15"
+    },
+    {
+      "id": "credits/potrebitelskoe-creditovanie",
+      "section": "credits",
+      "kind": "info",
+      "title": "Потребительское кредитование",
+      "slug": "potrebitelskoe-creditovanie",
+      "detail_level": "list",
+      "attributes": {
+        "is_creatable": true
+      },
+      "conditions": [
+        {
+          "key": "Процентная ставка",
+          "value": "от 20% годовых"
+        },
+        {
+          "key": "Срок кредита",
+          "value": "до 60 месяцев"
+        },
+        {
+          "key": "Сумма кредита",
+          "value": "от 10 000 сом"
+        }
+      ],
+      "text": "Оформи кредит на любые потребительские цели по выгодным условиям",
+      "documents": [],
+      "source_url": "https://eldik.kg/ru/credits/potrebitelskoe-creditovanie",
+      "data_date": "2026-10-15"
+    },
+    {
+      "id": "credits/lgotnoe-finansirovanie-po-gazifikacii-4",
+      "section": "credits",
+      "kind": "info",
+      "title": "Льготное финансирование по газификации - 4",
+      "slug": "lgotnoe-finansirovanie-po-gazifikacii-4",
+      "detail_level": "list",
+      "attributes": {
+        "is_creatable": true
+      },
+      "conditions": [
+        {
+          "key": "Сумма кредита",
+          "value": "до 150 000 сом"
+        },
+        {
+          "key": "Срок кредита",
+          "value": "12 или 24 месяца"
+        },
+        {
+          "key": "Процентная ставка",
+          "value": "3% годовых"
+        }
+      ],
+      "text": "Потребительский кредит для подключения к газу, покупки газовых котлов и других материалов",
+      "documents": [],
+      "source_url": "https://eldik.kg/ru/credits/lgotnoe-finansirovanie-po-gazifikacii-4",
+      "data_date": "2026-10-15"
+    },
+    {
+      "id": "credits/avto-v-kredit",
+      "section": "credits",
+      "kind": "info",
+      "title": "Авто в кредит",
+      "slug": "avto-v-kredit",
+      "detail_level": "list",
+      "attributes": {
+        "is_creatable": true
+      },
+      "conditions": [
+        {
+          "key": "Сумма кредита",
+          "value": "до 4 000 000 сом"
+        },
+        {
+          "key": "Срок кредита",
+          "value": "до 60 месяцев"
+        },
+        {
+          "key": "Процентная ставка",
+          "value": "от 19% годовых"
+        },
+        {
+          "key": "Собственный вклад",
+          "value": "от 30%"
+        }
+      ],
+      "text": "Мечтаешь о своей машине? Оформи авто в кредит!",
+      "documents": [],
+      "source_url": "https://eldik.kg/ru/credits/avto-v-kredit",
+      "data_date": "2026-10-15"
+    },
+    {
+      "id": "credits/kredit-na-zhile",
+      "section": "credits",
+      "kind": "info",
+      "title": "Кредит на жилье",
+      "slug": "kredit-na-zhile",
+      "detail_level": "list",
+      "attributes": {
+        "is_creatable": true
+      },
+      "conditions": [
+        {
+          "key": "Срок кредита",
+          "value": "До 10 лет"
+        },
+        {
+          "key": "Сумма кредита",
+          "value": "от 500 000 сом"
+        },
+        {
+          "key": "Ставка",
+          "value": "19% годовых"
+        }
+      ],
+      "text": "Купи недвижимость своей мечты с «Элдик Банком»!",
+      "documents": [],
+      "source_url": "https://eldik.kg/ru/credits/kredit-na-zhile",
+      "data_date": "2026-10-15"
+    },
+    {
+      "id": "credits/kreditnay-karta",
+      "section": "credits",
+      "kind": "info",
+      "title": "Кредитная карта",
+      "slug": "kreditnay-karta",
+      "detail_level": "detail",
+      "attributes": {
+        "is_creatable": true
+      },
+      "conditions": [
+        {
+          "key": "Ставка",
+          "value": "0,0767 % в день"
+        },
+        {
+          "key": "Валюта кредита",
+          "value": "сом"
+        },
+        {
+          "key": "Сумма кредита",
+          "value": "до 200 000 сом"
+        },
+        {
+          "key": "Срок кредита",
+          "value": "до 36 месяцев"
+        }
+      ],
+      "text": "Кредитная карта - это универсальный платежный инструмент, являющийся атрибутом современного, успешного человека, подчеркивающий его независимый статус.\nПреимущества:\n• Нет строгого графика погашения основного долга, клиент сам контролирует свои платежи;\n• Постоянно доступный лимит, возобновляющийся по мере погашения;\n• Нет комиссий за выдачу кредита и дополнительных расходов по оформлению кредита;\n• Короткие сроки рассмотрения;\n• Мобильность - круглосуточный доступ к лимиту посредством разветвленной сети банкоматов\n• Возобновляемый льготный период до 30 дней по начислению процентов – в течение которого Банк не взимает проценты за пользование кредитными средствами.",
+      "documents": [],
+      "source_url": "https://eldik.kg/ru/credits/kreditnay-karta",
+      "data_date": "2026-10-15"
+    },
+    {
+      "id": "credits/Uluchshenie-kachestva",
+      "section": "credits",
+      "kind": "info",
+      "title": "Улучшение качества воздуха в Кыргызской Республике",
+      "slug": "Uluchshenie-kachestva",
+      "detail_level": "list",
+      "attributes": {
+        "is_creatable": true
+      },
+      "conditions": [
+        {
+          "key": "Сумма кредита",
+          "value": "до 1 млн сом"
+        },
+        {
+          "key": "Ставка",
+          "value": "от 6% годовых"
+        }
+      ],
+      "text": "",
+      "documents": [],
+      "source_url": "https://eldik.kg/ru/credits/Uluchshenie-kachestva",
+      "data_date": "2026-10-15"
+    },
+    {
+      "id": "credits/pokupka-zhilya-na-pervichnom-rynke-kfw",
+      "section": "credits",
+      "kind": "info",
+      "title": "Ипотека «ГИК» - «Кут-конуш» (покупка жилья на первичном рынке)",
+      "slug": "pokupka-zhilya-na-pervichnom-rynke-kfw",
+      "detail_level": "list",
+      "attributes": {
+        "is_creatable": true
+      },
+      "conditions": [
+        {
+          "key": "Срок кредита",
+          "value": "До 15 лет"
+        },
+        {
+          "key": "Сумма кредита",
+          "value": "38 700 евро (эквивалент в сомах)"
+        },
+        {
+          "key": "Процентная ставка",
+          "value": "8% годовых"
+        }
+      ],
+      "text": "",
+      "documents": [],
+      "source_url": "https://eldik.kg/ru/credits/pokupka-zhilya-na-pervichnom-rynke-kfw",
+      "data_date": "2026-10-15"
+    },
+    {
+      "id": "credits/ipoteka-gik-bek-ustun-pokupka-zhilya-na-vtorichnom",
+      "section": "credits",
+      "kind": "info",
+      "title": "Ипотека «ГИК» - «Бек – устун» (покупка жилья на вторичном рынке)",
+      "slug": "ipoteka-gik-bek-ustun-pokupka-zhilya-na-vtorichnom",
+      "detail_level": "list",
+      "attributes": {
+        "is_creatable": true
+      },
+      "conditions": [
+        {
+          "key": "Срок кредита",
+          "value": "до 15 лет"
+        },
+        {
+          "key": "Сумма кредита",
+          "value": "38 700 евро (эквивалент в сомах)"
+        },
+        {
+          "key": "Процентная ставка",
+          "value": "8% годовых"
+        }
+      ],
+      "text": "",
+      "documents": [],
+      "source_url": "https://eldik.kg/ru/credits/ipoteka-gik-bek-ustun-pokupka-zhilya-na-vtorichnom",
+      "data_date": "2026-10-15"
+    },
+    {
+      "id": "credits/ipoteka-gik-ashar-stroitelstvo-individualnogo-zhil",
+      "section": "credits",
+      "kind": "info",
+      "title": "Ипотека «ГИК» - «Ашар» (строительство индивидуального жилья)",
+      "slug": "ipoteka-gik-ashar-stroitelstvo-individualnogo-zhil",
+      "detail_level": "list",
+      "attributes": {
+        "is_creatable": true
+      },
+      "conditions": [
+        {
+          "key": "Срок кредита",
+          "value": "до 15 лет"
+        },
+        {
+          "key": "Сумма кредита",
+          "value": "38 700 евро (эквивалент в сомах)"
+        },
+        {
+          "key": "Процентная ставка",
+          "value": "8% годовых"
+        }
+      ],
+      "text": "",
+      "documents": [],
+      "source_url": "https://eldik.kg/ru/credits/ipoteka-gik-ashar-stroitelstvo-individualnogo-zhil",
+      "data_date": "2026-10-15"
+    },
+    {
+      "id": "credits/lgotnoe-finansirovanie-avtokredita",
+      "section": "credits",
+      "kind": "info",
+      "title": "Льготное финансирование автокредита - 3",
+      "slug": "lgotnoe-finansirovanie-avtokredita",
+      "detail_level": "list",
+      "attributes": {
+        "is_creatable": true
+      },
+      "conditions": [
+        {
+          "key": "Сумма кредита",
+          "value": "До 5 000 000"
+        },
+        {
+          "key": "Срок кредита",
+          "value": "До 60 месяцев"
+        },
+        {
+          "key": "Процентная ставка",
+          "value": "от 4% годовых"
+        }
+      ],
+      "text": "Кредитование отечественных авто под 8%",
+      "documents": [],
+      "source_url": "https://eldik.kg/ru/credits/lgotnoe-finansirovanie-avtokredita",
+      "data_date": "2026-10-15"
+    },
+    {
+      "id": "credits/kredit-zelenye-produkty",
+      "section": "credits",
+      "kind": "info",
+      "title": "Кредит «Зеленые продукты»",
+      "slug": "kredit-zelenye-produkty",
+      "detail_level": "list",
+      "attributes": {
+        "is_creatable": true
+      },
+      "conditions": [
+        {
+          "key": "Сумма кредита",
+          "value": "От 10 000 сом"
+        },
+        {
+          "key": "Срок кредита",
+          "value": "До 120 месяцев"
+        },
+        {
+          "key": "Процентная ставка",
+          "value": "от 18% годовых"
+        }
+      ],
+      "text": "Сохранение и улучшение экологии, состояния климата и окружающей среды, ресурсосбережения, энергосбережения и энергоэффективности в рамках стратегии ESG",
+      "documents": [],
+      "source_url": "https://eldik.kg/ru/credits/kredit-zelenye-produkty",
+      "data_date": "2026-10-15"
+    },
+    {
+      "id": "credits/gazifikaciya-gbo",
+      "section": "credits",
+      "kind": "info",
+      "title": "Газификация ( ГБО)",
+      "slug": "gazifikaciya-gbo",
+      "detail_level": "list",
+      "attributes": {
+        "is_creatable": true
+      },
+      "conditions": [
+        {
+          "key": "Срок кредита",
+          "value": "до12 месяцев"
+        },
+        {
+          "key": "Ставка",
+          "value": "14% годовых"
+        },
+        {
+          "key": "Сумма кредита",
+          "value": "до 100 000 сом"
+        }
+      ],
+      "text": "-Установка/приобретение газобаллонного оборудования (ГБО) на автотранспорт, включая оплату всех работ и материалов;\n- Установка катализаторов на автотранспорт.",
+      "documents": [],
+      "source_url": "https://eldik.kg/ru/credits/gazifikaciya-gbo",
+      "data_date": "2026-10-15"
+    },
+    {
+      "id": "credits/jenskaya-ipoteka-gik",
+      "section": "credits",
+      "kind": "info",
+      "title": "Женская ипотека",
+      "slug": "jenskaya-ipoteka-gik",
+      "detail_level": "list",
+      "attributes": {
+        "is_creatable": true
+      },
+      "conditions": [
+        {
+          "key": "Процентная ставка",
+          "value": "9,75% годовых"
+        },
+        {
+          "key": "Срок",
+          "value": "до 25 лет"
+        },
+        {
+          "key": "Сумма кредита",
+          "value": "до 7 млн сом"
+        }
+      ],
+      "text": "«Элдик Банк» совместно с Государственной ипотечной компанией при поддержке Азиатского банка развития запустил программу «Женская ипотека»",
+      "documents": [],
+      "source_url": "https://eldik.kg/ru/credits/jenskaya-ipoteka-gik",
+      "data_date": "2026-10-15"
+    },
+    {
+      "id": "credits/razvitie-ustojchivyh-agroprodovolstvennyhklastero",
+      "section": "credits",
+      "kind": "info",
+      "title": "Развитие устойчивых агропродовольственных кластеров",
+      "slug": "razvitie-ustojchivyh-agroprodovolstvennyhklastero",
+      "detail_level": "list",
+      "attributes": {
+        "is_creatable": true
+      },
+      "conditions": [],
+      "text": "Предоставление льготных кредитов для развития молочного и садоводческого кластеров, в том числе на приобретение основных и оборотных средств, расширение деятельности и повышение эффективности производства в Чуйской, Нарынской и Джалал-Абадской областях.",
+      "documents": [],
+      "source_url": "https://eldik.kg/ru/credits/razvitie-ustojchivyh-agroprodovolstvennyhklastero",
+      "data_date": "2026-10-15"
+    }
+  ]
+}
