@@ -378,6 +378,12 @@ class Builder:
 
     I18N_FEE_FIELDS = ("issuance", "annual_service", "account_opening")
 
+    # Поля, которые уже признаны спорными (расходятся между языками сайта).
+    # Обнуляются всегда, даже если файлов i18n нет: точные суммы в тексте.
+    KNOWN_DISPUTED_FEES = {
+        "elkart-beskontakt": ("issuance",),
+    }
+
     def manual_cards(self) -> dict[str, dict]:
         """Карты, внесённые вручную из текста страницы: manual_cards/<slug>.json."""
         if hasattr(self, "_manual"):
@@ -542,7 +548,15 @@ class Builder:
                         attributes[field] = None
                         break
 
-            parts = [self.text(pick("short_desc")), self.text(detail.get("desc")) if detail else ""]
+            for field in self.KNOWN_DISPUTED_FEES.get(slug, ()):
+                if attributes.get(field) is not None:
+                    self.gaps.append(
+                        f"cards/{slug}: поле {field} известно как спорное "
+                        f"(ru: {attributes[field]}); поле не используется, суммы смотрите в тексте"
+                    )
+                    attributes[field] = None
+
+            parts =[self.text(pick("short_desc")), self.text(detail.get("desc")) if detail else ""]
             if detail:
                 services = [
                     self.text(s.get("name"))

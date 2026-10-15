@@ -112,13 +112,18 @@ class _ChatScreenState extends State<ChatScreen> {
     } catch (e) {
       if (!mounted) return;
 
+      // Технические подробности только в консоль, пользователю - понятный текст.
+      debugPrint('sendMessage error: $e');
+
       setState(() {
         _messages.add(
           ChatMessage(
             role: 'model',
-            text:
-                'Извините, произошла ошибка связи с сервером. '
-                'Попробуйте ещё раз.\n($e)',
+            text: e is ApiException
+                ? e.message
+                : 'Извините, произошла ошибка связи с сервером. '
+                    'Попробуйте ещё раз.',
+            isError: true,
           ),
         );
       });
