@@ -41,7 +41,7 @@ DEFAULT_OUT = REPO_ROOT / "backend" / "knowledge"
 
 SITE = "https://eldik.kg"
 
-# Адреса страниц выведены из имён эндпоинтов в файлах ends_* / end-points_*
+# Адреса страниц выведены из имён эндпоинтов Next.js
 # (например .../ru/payment-cards/visa-infinite.json -> /ru/payment-cards/visa-infinite).
 # Для остальных разделов точный адрес страницы неизвестен, там стоит None.
 # Перед показом откройте 2-3 ссылки в браузере и проверьте.

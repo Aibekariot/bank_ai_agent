@@ -50,6 +50,9 @@ class OpenRouterProvider(LLMProvider):
             },
         )
 
+    def close(self) -> None:
+        self.client.close()
+
     # ---------------------------------------------------------
     # Gemini format -> OpenRouter format
     # ---------------------------------------------------------

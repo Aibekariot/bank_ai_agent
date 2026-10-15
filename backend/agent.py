@@ -618,6 +618,15 @@ def run_chat(history: list[dict]) -> str:
         tool_declarations=TOOL_DECLARATIONS,
     )
 
+    try:
+        return _chat_with_provider(provider, history, total_started)
+    finally:
+        # Каждый запрос создаёт своего провайдера: закрываем его соединения.
+        provider.close()
+
+
+def _chat_with_provider(provider, history: list[dict], total_started: float) -> str:
+
     # ---------------------------------------------------------
     # Первый запрос
     # ---------------------------------------------------------
@@ -711,13 +720,6 @@ def run_chat(history: list[dict]) -> str:
                 f"[TOOL RESULT] {tool_name}: "
                 f"{result_size} chars"
             )
-
-            if tool_name == "list_card_products":
-                print(
-                    f"[TOOL RESULT DATA] "
-                    f"{json.dumps(tool_result, ensure_ascii=False)}"
-            )
-
 
             tool_results.append(
                 {

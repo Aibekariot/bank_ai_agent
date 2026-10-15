@@ -33,6 +33,7 @@ set PYTHONUTF8=1
 python tests\test_build_knowledge.py
 python tests\test_tools.py
 python tests\test_scope_guard.py
+python tests\test_main.py
 ```
 
 Ручная проверка ответов агента: `backend/tests/TEST_QUESTIONS.md`.

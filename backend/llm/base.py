@@ -35,3 +35,6 @@ class LLMProvider(ABC):
         tool_results: list[dict],
     ) -> LLMResponse:
         raise NotImplementedError
+
+    def close(self) -> None:
+        """Освобождает ресурсы провайдера (HTTP-соединения). По умолчанию ничего."""
