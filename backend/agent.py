@@ -6,7 +6,9 @@ Agent не зависит от конкретного LLM-провайдера.
 
 import json
 import time
+from dataclasses import dataclass, field
 
+import actions
 import dev_log
 from tools import TOOL_DECLARATIONS, TOOL_FUNCTIONS
 from scope_guard import check_bank_scope
@@ -377,12 +379,15 @@ sell = банк продаёт валюту клиенту.
 - статус заявок;
 - персональные банковские данные.
 
-Ты не выполняешь банковские операции:
+Ты не выполняешь банковские операции сам:
 
 - переводы;
 - открытие счетов;
 - оформление карт;
 - оформление кредитов.
+
+Перевод по номеру телефона ты можешь только ПОДГОТОВИТЬ (раздел 17):
+провести его может только сам клиент, подтвердив в приложении.
 
 Ты не гарантируешь одобрение кредита.
 
@@ -490,6 +495,23 @@ PIN-КОД КАРТЫ.
 документа пользователю и предложи открыть его.
 
 --------------------------------------------------
+17. КНОПКИ ПРИЛОЖЕНИЯ И ПЕРЕВОД ПО НОМЕРУ
+--------------------------------------------------
+
+Ты работаешь внутри приложения банка. Если в результате инструмента есть
+app_buttons, клиент увидит эти кнопки под твоим ответом: можно коротко
+сказать «нажмите кнопку ниже». Не говори, что не можешь открыть раздел.
+
+Если клиент сам просит перевести деньги по номеру телефона («переведи
+500 сом на 0555 123 456»), вызови prepare_transfer с номером и суммой из
+сообщения. Перевод при этом НЕ выполняется: скажи, что форма перевода
+готова, и попроси проверить данные и подтвердить перевод в приложении.
+Никогда не пиши, что деньги отправлены или перевод выполнен.
+
+Вопросы об условиях, комиссиях и способах переводов (SWIFT, Western Union
+и т.п.) не просьба перевести: для них search_knowledge.
+
+--------------------------------------------------
 СТИЛЬ
 --------------------------------------------------
 
@@ -554,6 +576,14 @@ is_creatable, details, null) и не пиши "в базе данных", "в д
 """
 
 
+@dataclass
+class ChatResult:
+    """Ответ агента: текст и действия для приложения (кнопки под ответом)."""
+
+    reply: str
+    actions: list[dict] = field(default_factory=list)
+
+
 QUOTA_MESSAGE = (
     "Сейчас AI-консультант временно недоступен из-за ограничения "
     "на количество запросов. Пожалуйста, попробуйте ещё раз немного позже."
@@ -578,7 +608,7 @@ def _tool_result_size(result) -> int:
         return len(str(result))
 
 
-def run_chat(history: list[dict]) -> str:
+def run_chat(history: list[dict]) -> ChatResult:
 
     total_started = time.perf_counter()
 
@@ -599,7 +629,7 @@ def run_chat(history: list[dict]) -> str:
         print("[scope_guard] rejected")
 
         # Отказ на языке пользователя (ru / ky / en).
-        return refusal_for(history[-1].get("text", ""))
+        return ChatResult(refusal_for(history[-1].get("text", "")))
 
     scope_elapsed = time.perf_counter() - scope_started
 
@@ -625,7 +655,7 @@ def run_chat(history: list[dict]) -> str:
         provider.close()
 
 
-def _chat_with_provider(provider, history: list[dict], total_started: float) -> str:
+def _chat_with_provider(provider, history: list[dict], total_started: float) -> ChatResult:
 
     # ---------------------------------------------------------
     # Первый запрос
@@ -653,6 +683,9 @@ def _chat_with_provider(provider, history: list[dict], total_started: float) -> 
     # ---------------------------------------------------------
 
     max_tool_rounds = 3
+
+    # Проверенные действия для приложения (кнопки под ответом).
+    app_actions: list[dict] = []
 
     for round_number in range(1, max_tool_rounds + 1):
 
@@ -707,6 +740,19 @@ def _chat_with_provider(provider, history: list[dict], total_started: float) -> 
                 - tool_started
             )
 
+            # Подсказки действий не уходят модели: агент проверяет их по
+            # каталогу, а модели сообщает только подписи кнопок.
+            buttons = []
+            for hint in actions.take_hints(tool_result):
+                if not isinstance(hint, dict):
+                    continue
+                action = actions.validate(hint.get("name", ""), hint.get("params"))
+                if action and actions.add_unique(app_actions, action):
+                    buttons.append(action["label"])
+            if buttons:
+                tool_result["app_buttons"] = buttons
+                print(f"[ACTIONS] {tool_name}: {', '.join(buttons)}")
+
             result_size = _tool_result_size(
                 tool_result
             )
@@ -744,9 +790,10 @@ def _chat_with_provider(provider, history: list[dict], total_started: float) -> 
     )
 
     if response.text:
-        return response.text
+        return ChatResult(response.text, app_actions)
 
-    return (
+    return ChatResult(
         "Не удалось получить текстовый ответ "
-        "от AI-консультанта."
+        "от AI-консультанта.",
+        app_actions,
     )

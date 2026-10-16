@@ -49,7 +49,13 @@ def note_tool(name: str) -> None:
         collected.append(name)
 
 
-def record(history: list[dict], reply: str, elapsed: float, error: str | None = None) -> None:
+def record(
+    history: list[dict],
+    reply: str,
+    elapsed: float,
+    error: str | None = None,
+    actions: list[str] | None = None,
+) -> None:
     """Дописывает один обмен вопрос-ответ в logs/dialogs.txt."""
     if not enabled():
         return
@@ -73,6 +79,8 @@ def record(history: list[dict], reply: str, elapsed: float, error: str | None = 
         lines.append(f"ОШИБКА: {error}")
     else:
         lines.append(f"Ответ: {reply}")
+        if actions:
+            lines.append(f"Кнопки в приложении: {', '.join(actions)}")
     lines.extend(["", ""])
 
     try:

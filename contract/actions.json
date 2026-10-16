@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "description": "Каталог действий ассистента в приложении банка. Ассистент только предлагает действие, приложение показывает его кнопкой под ответом и выполняет своим экраном. Действия kind=operation приложение проводит только после подтверждения клиента. Сервер и приложение проверяют каждое действие по этому каталогу; неизвестные действия и параметры отбрасываются.",
+  "actions": {
+    "open_exchange_rates": {
+      "kind": "navigate",
+      "label": "Курсы валют",
+      "label_param": "currency",
+      "params": {
+        "currency": {"type": "string", "required": false, "pattern": "^[A-Z]{3}$"}
+      },
+      "example": {"currency": "USD"}
+    },
+    "open_locations": {
+      "kind": "navigate",
+      "label": "Банкоматы и отделения",
+      "label_param": "city",
+      "params": {
+        "city": {"type": "string", "required": false, "max_length": 60},
+        "kind": {"type": "string", "required": false, "enum": ["atm", "branch", "savings_cash", "mobile_cash"]}
+      },
+      "example": {"city": "Ош", "kind": "branch"}
+    },
+    "open_card_product": {
+      "kind": "navigate",
+      "label": "Карта",
+      "label_param": "title",
+      "params": {
+        "slug": {"type": "string", "required": true, "pattern": "^[A-Za-z0-9-]{1,80}$"},
+        "title": {"type": "string", "required": false, "max_length": 80}
+      },
+      "example": {"slug": "visa-gold", "title": "Visa Gold"}
+    },
+    "open_pin_change": {
+      "kind": "navigate",
+      "label": "Сменить PIN-код",
+      "params": {},
+      "example": {}
+    },
+    "open_transfer_by_phone": {
+      "kind": "operation",
+      "label": "Перевод по номеру телефона",
+      "params": {
+        "phone": {"type": "string", "required": false, "pattern": "^\\+996\\d{9}$"},
+        "amount": {"type": "number", "required": false, "min": 1},
+        "currency": {"type": "string", "required": false, "enum": ["KGS"]}
+      },
+      "example": {"phone": "+996555123456", "amount": 500, "currency": "KGS"}
+    }
+  }
+}

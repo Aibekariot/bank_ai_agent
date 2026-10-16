@@ -10,7 +10,9 @@
     во время ответа клиенту обращений к сайту банка и к PostgreSQL нет;
   * курсы валют - живой запрос к сайту (они меняются каждый день);
   * контакты банка - словарь в eldik_client.py;
-  * расчёты (платёж по кредиту, доход по депозиту) - обычный Python-код.
+  * расчёты (платёж по кредиту, доход по депозиту) - обычный Python-код;
+  * кнопки в приложении - подсказки под ключом actions.HINT_KEY; агент
+    проверяет их по contract/actions.json и убирает из ответа модели.
 
 Названия инструментов и их основные поля сохранены, поэтому системный
 промпт в agent.py продолжает работать.
@@ -18,6 +20,7 @@
 
 from datetime import date
 
+import actions
 import knowledge
 import eldik_client
 
@@ -298,7 +301,14 @@ def list_card_products(query: str = "") -> dict:
         return {"count": 0, "items": [], "hint": NOT_FOUND_HINT}
 
     compact = len(docs) > COMPACT_AFTER
-    return {"count": len(docs), "items": [_card_view(d, compact=compact) for d in docs]}
+    result = {"count": len(docs), "items": [_card_view(d, compact=compact) for d in docs]}
+    if not compact:
+        # Подсказка приложению: кнопка "открыть карту" (модели не показывается).
+        result[actions.HINT_KEY] = [
+            {"name": "open_card_product", "params": {"slug": d.get("slug"), "title": d.get("title")}}
+            for d in docs
+        ]
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -368,6 +378,11 @@ def find_locations(query: str = "", kind: str = "") -> dict:
             "Ничего не найдено по этому запросу. Не выдумывай адреса. "
             "Назови регионы из coverage или предложи позвонить в 9111."
         )
+    else:
+        params = {"city": query.strip()} if (query or "").strip() else {}
+        if kind:
+            params["kind"] = kind
+        out[actions.HINT_KEY] = [{"name": "open_locations", "params": params}]
     return out
 
 
@@ -408,6 +423,9 @@ def get_tariff_documents(query: str = "") -> dict:
 # Поиск по остальным разделам
 # ---------------------------------------------------------------------------
 
+# Инструкция по смене PIN: если она найдена, приложение покажет кнопку смены PIN.
+PIN_CHANGE_DOC_ID = "instructions/change-pin-code"
+
 SEARCHABLE_SECTIONS = [
     "cards",
     "credits",
@@ -436,7 +454,10 @@ def search_knowledge(query: str, section: str = "") -> dict:
     if not docs:
         return {"count": 0, "items": [], "hint": NOT_FOUND_HINT}
 
-    return {"count": len(docs), "items": [_view_for(d) for d in docs]}
+    result = {"count": len(docs), "items": [_view_for(d) for d in docs]}
+    if any(d["id"] == PIN_CHANGE_DOC_ID for d in docs):
+        result[actions.HINT_KEY] = [{"name": "open_pin_change", "params": {}}]
+    return result
 
 
 @_safe
@@ -495,7 +516,10 @@ def get_exchange_rate(currency: str = "") -> dict:
     rates = eldik_client.get_exchange_rates()
 
     if not currency:
-        return rates
+        # Копия: rates лежит в кэше клиента, его нельзя менять.
+        result = dict(rates)
+        result[actions.HINT_KEY] = [{"name": "open_exchange_rates", "params": {}}]
+        return result
 
     currency = currency.upper()
     cash = next((r for r in rates["cash"] if r["currency"] == currency), None)
@@ -510,7 +534,86 @@ def get_exchange_rate(currency: str = "") -> dict:
         "cash": cash,
         "cashless": cashless,
         "note": rates["note"],
+        actions.HINT_KEY: [{"name": "open_exchange_rates", "params": {"currency": currency}}],
     }
+
+
+# ---------------------------------------------------------------------------
+# Черновик перевода по номеру телефона
+# ---------------------------------------------------------------------------
+
+TRANSFER_CURRENCIES = ("KGS",)  # как в contract/actions.json
+
+
+def _parse_amount(amount) -> float | None:
+    """Сумма из аргумента модели: число или строка вида "1 500,50"."""
+    if amount is None or isinstance(amount, bool):
+        return None
+    if isinstance(amount, (int, float)):
+        return float(amount)
+    try:
+        return float(str(amount).replace(" ", "").replace(",", "."))
+    except ValueError:
+        return None
+
+
+def prepare_transfer(phone: str = "", amount=None, currency: str = "KGS") -> dict:
+    """
+    Черновик перевода по номеру телефона для приложения.
+
+    Перевод НЕ проводится: приложение откроет форму с этими данными,
+    клиент проверит их и подтвердит перевод сам.
+    """
+    currency = (currency or "KGS").strip().upper()
+    if currency in ("СОМ", "СОМОВ", "SOM", "KGZ"):
+        currency = "KGS"
+    if currency not in TRANSFER_CURRENCIES:
+        return {
+            "status": "unsupported_currency",
+            "hint": (
+                "Подготовить можно только перевод в сомах (KGS). Перевод не подготовлен: "
+                "скажи это клиенту и не называй других условий."
+            ),
+        }
+
+    params: dict = {"currency": "KGS"}
+    result: dict = {"status": "draft_ready", "currency": "KGS"}
+    missing = []
+
+    if (phone or "").strip():
+        normalized = actions.normalize_kg_phone(phone)
+        if normalized is None:
+            return {
+                "status": "need_phone",
+                "hint": (
+                    "Номер не распознан, перевод не подготовлен. Попроси номер мобильного "
+                    "телефона получателя, например 0555 123 456."
+                ),
+            }
+        params["phone"] = result["phone"] = normalized
+    else:
+        missing.append("Номер получателя не указан: клиент введёт его в форме.")
+
+    if amount is not None:
+        value = _parse_amount(amount)
+        if value is None or value < 1:
+            return {
+                "status": "need_amount",
+                "hint": "Сумма не распознана, перевод не подготовлен. Попроси сумму в сомах.",
+            }
+        value = int(value) if value.is_integer() else round(value, 2)
+        params["amount"] = result["amount"] = value
+    else:
+        missing.append("Сумма не указана: клиент введёт её в форме.")
+
+    result["note"] = " ".join([
+        "Перевод НЕ выполнен. В приложении откроется форма перевода с этими данными.",
+        "Скажи клиенту коротко: форма готова, нужно проверить данные и подтвердить",
+        "перевод в приложении. Никогда не пиши, что деньги отправлены.",
+        *missing,
+    ])
+    result[actions.HINT_KEY] = [{"name": "open_transfer_by_phone", "params": params}]
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -739,6 +842,33 @@ TOOL_DECLARATIONS = [
         },
     },
     {
+        "name": "prepare_transfer",
+        "description": (
+            "Подготовить в приложении форму перевода по номеру телефона, когда клиент "
+            "САМ просит перевести деньги (например: «переведи 500 сом на 0555 123 456»). "
+            "Перевод не проводится: клиент проверит данные и подтвердит его в приложении. "
+            "Не используй для вопросов об условиях, комиссиях и способах переводов "
+            "(для них search_knowledge)."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "phone": {
+                    "type": "string",
+                    "description": "Номер получателя из сообщения клиента, как написан. Пусто, если не указан.",
+                },
+                "amount": {
+                    "type": "number",
+                    "description": "Сумма из сообщения клиента. Не указывай, если клиент её не назвал.",
+                },
+                "currency": {
+                    "type": "string",
+                    "description": "Валюта суммы: KGS (сом), USD и т.д. По умолчанию KGS.",
+                },
+            },
+        },
+    },
+    {
         "name": "calculate_loan_payment",
         "description": "Рассчитать ежемесячный платёж по кредиту (аннуитет).",
         "parameters": {
@@ -799,6 +929,7 @@ TOOL_FUNCTIONS = {
     "find_locations": find_locations,
     "get_bank_contacts": get_bank_contacts,
     "get_exchange_rate": get_exchange_rate,
+    "prepare_transfer": prepare_transfer,
     "calculate_loan_payment": calculate_loan_payment,
     "calculate_deposit_income": calculate_deposit_income,
 }

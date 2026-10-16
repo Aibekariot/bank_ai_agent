@@ -1,26 +1,30 @@
 """
 FastAPI backend для чата с AI-агентом банка.
 
-Запуск:
-    pip install -r requirements.txt
-    export GEMINI_API_KEY=your_key_here
-    uvicorn main:app --reload --port 8000
+Запуск (из папки backend):
+    uvicorn main:app --reload --host 0.0.0.0 --port 8000
+
+Контракт API для приложения: contract/README.md.
 """
 from dotenv import load_dotenv
 
 load_dotenv()
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 import time
 from typing import Literal
 
+import demo_bank_api
 import dev_log
 from agent import run_chat
 
 app =FastAPI(title="Eldik Bank AI Agent")
+
+# Имитация API банка для демо-приложения (к агенту не относится).
+app.include_router(demo_bank_api.router)
 
 # Для демо разрешаем все origins. В проде сузить до конкретных доменов.
 app.add_middleware(
@@ -68,10 +72,22 @@ def prepare_history(messages: list[ChatMessage]) -> list[dict]:
 
 class ChatRequest(BaseModel):
     messages: list[ChatMessage]
+    # Идентификатор диалога от приложения. Пока не хранится: хранение
+    # диалога на сервере запланировано на стадию Pilot.
+    session_id: str | None = Field(default=None, max_length=100)
+
+
+class ChatAction(BaseModel):
+    """Действие в приложении из каталога contract/actions.json (кнопка под ответом)."""
+
+    name: str
+    label: str
+    params: dict = Field(default_factory=dict)
 
 
 class ChatResponse(BaseModel):
     reply: str
+    actions: list[ChatAction] = Field(default_factory=list)
 
 
 @app.get("/health")
@@ -79,16 +95,22 @@ def health():
     return {"status": "ok"}
 
 
+# /chat оставлен для старых сборок приложения; новые вызывают /v1/chat.
+@app.post("/v1/chat", response_model=ChatResponse)
 @app.post("/chat", response_model=ChatResponse)
-def chat(request: ChatRequest):
+def chat(request: ChatRequest, authorization: str | None = Header(default=None)):
     history = prepare_history(request.messages)
+
+    # Токен приложения пока не проверяется (в демо он вымышленный): проверка
+    # у банка появится вместе с личными данными. Здесь только отметка в логе.
+    print(f"[AUTH] токен: {'есть' if authorization else 'нет'}, session_id: {request.session_id or '-'}")
 
     # Запись диалога в logs/dialogs.txt (только если в .env DEV_LOG=1).
     dev_log.start_request()
     started = time.perf_counter()
 
     try:
-        reply = run_chat(history)
+        result = run_chat(history)
     except Exception as exc:  # noqa: BLE001
         dev_log.record(history, "", time.perf_counter() - started, error=str(exc))
         print(f"[ERROR] {type(exc).__name__}: {exc}")  # подробности только в логе сервера
@@ -104,5 +126,8 @@ def chat(request: ChatRequest):
             detail="Не удалось получить ответ. Попробуйте ещё раз.",
         ) from exc
 
-    dev_log.record(history, reply, time.perf_counter() - started)
-    return ChatResponse(reply=reply)
+    dev_log.record(
+        history, result.reply, time.perf_counter() - started,
+        actions=[a["name"] for a in result.actions],
+    )
+    return ChatResponse(reply=result.reply, actions=result.actions)
