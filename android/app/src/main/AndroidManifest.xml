@@ -4,7 +4,7 @@
     <!-- usesCleartextTraffic: демо-сервер работает по http в локальной сети.
          Убрать, когда сервер перейдёт на https. -->
     <application
-        android:label="bank_ai_agent"
+        android:label="Демо-банк"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon"
         android:usesCleartextTraffic="true">

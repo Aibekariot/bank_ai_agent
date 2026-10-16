@@ -64,5 +64,7 @@ __pycache__/
 # Flutter/Dart
 .dart_tool/
 build/
+# Версии зависимостей фиксирует pubspec.lock приложения; у пакета лок не храним.
+packages/*/pubspec.lock
 
 backend/logs/

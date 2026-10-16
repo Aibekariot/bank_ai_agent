@@ -1,38 +1,49 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../models/message.dart';
-import '../services/api_service.dart';
-import '../widgets/chat_bubble.dart';
+import 'assistant_action.dart';
+import 'assistant_api.dart';
+import 'assistant_config.dart';
+import 'chat_bubble.dart';
+import 'chat_message.dart';
 
-class ChatScreen extends StatefulWidget {
-  const ChatScreen({super.key});
+/// Экран чата с ассистентом.
+///
+/// [actionHandler] выполняет действия ассистента в приложении-хозяине;
+/// без него кнопки действий не показываются. [api] можно подменить в тестах.
+class AssistantChatScreen extends StatefulWidget {
+  const AssistantChatScreen({
+    super.key,
+    required this.config,
+    this.actionHandler,
+    this.api,
+  });
+
+  final AssistantConfig config;
+  final AssistantActionHandler? actionHandler;
+  final AssistantApi? api;
 
   @override
-  State<ChatScreen> createState() => _ChatScreenState();
+  State<AssistantChatScreen> createState() => _AssistantChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
-  final ApiService _apiService = ApiService();
+class _AssistantChatScreenState extends State<AssistantChatScreen> {
+  late final AssistantApi _api = widget.api ?? AssistantApi(widget.config);
 
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final FocusNode _inputFocusNode = FocusNode();
 
-  static const String _greeting =
-      'Здравствуйте! Я AI-консультант Элдик Банка. '
-      'Могу рассказать о кредитах, депозитах, курсах валют '
-      'и помочь с расчётами. Чем могу помочь?';
-
-  final List<ChatMessage> _messages = [
-    ChatMessage(role: 'model', text: _greeting),
-  ];
+  late final List<ChatMessage> _messages = [_greetingMessage()];
 
   bool _isLoading = false;
 
   /// true, если пользователь находится у нижнего края списка.
   bool _stickToBottom = true;
   double _lastKeyboardInset = 0;
+
+  ChatMessage _greetingMessage() =>
+      ChatMessage(role: 'model', text: widget.config.greeting);
 
   @override
   void initState() {
@@ -102,12 +113,15 @@ class _ChatScreenState extends State<ChatScreen> {
     _scrollToBottom(animated: true);
 
     try {
-      final reply = await _apiService.sendMessage(_messages);
+      // Приветствие - не ответ сервера, модели его не отправляем.
+      final reply = await _api.send(_messages.skip(1).toList());
 
       if (!mounted) return;
 
       setState(() {
-        _messages.add(ChatMessage(role: 'model', text: reply));
+        _messages.add(
+          ChatMessage(role: 'model', text: reply.text, actions: reply.actions),
+        );
       });
     } catch (e) {
       if (!mounted) return;
@@ -138,14 +152,25 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  /// Действия под ответом, которые приложение умеет выполнить.
+  List<AssistantAction> _visibleActions(ChatMessage message) {
+    final handler = widget.actionHandler;
+    if (handler == null) return const [];
+    return message.actions
+        .where((a) => handler.supportedActions.contains(a.name))
+        .toList();
+  }
+
+  void _runAction(AssistantAction action) {
+    widget.actionHandler?.handle(context, action);
+  }
+
   /// Весь диалог одним текстом: "Вопрос: ... / Ответ: ...".
   /// Приветствие в начале не включается.
   String _conversationAsText() {
     final buffer = StringBuffer();
 
-    for (final message in _messages) {
-      if (!message.isUser && message.text == _greeting) continue;
-
+    for (final message in _messages.skip(1)) {
       buffer.writeln(
         message.isUser ? 'Вопрос: ${message.text}' : 'Ответ: ${message.text}',
       );
@@ -175,7 +200,7 @@ class _ChatScreenState extends State<ChatScreen> {
     setState(() {
       _messages
         ..clear()
-        ..add(ChatMessage(role: 'model', text: _greeting));
+        ..add(_greetingMessage());
     });
 
     _stickToBottom = true;
@@ -195,6 +220,8 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void dispose() {
+    // Клиент, переданный снаружи (тесты), закрывает его владелец.
+    if (widget.api == null) _api.close();
     _scrollController.removeListener(_onScroll);
     _inputFocusNode.dispose();
     _controller.dispose();
@@ -204,10 +231,12 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final handler = widget.actionHandler;
+
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
-        title: const Text('Элдик Банк — AI-консультант'),
+        title: Text(widget.config.title),
         backgroundColor: Colors.blue.shade700,
         foregroundColor: Colors.white,
         actions: [
@@ -237,7 +266,13 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
                 itemCount: _messages.length,
                 itemBuilder: (context, index) {
-                  return ChatBubble(message: _messages[index]);
+                  final message = _messages[index];
+                  return ChatBubble(
+                    message: message,
+                    actions: _visibleActions(message),
+                    onAction: handler == null ? null : _runAction,
+                    labelFor: handler?.labelFor,
+                  );
                 },
               ),
             ),
@@ -274,7 +309,7 @@ class _ChatScreenState extends State<ChatScreen> {
               textInputAction: TextInputAction.send,
               onSubmitted: (_) => _sendMessage(),
               decoration: InputDecoration(
-                hintText: 'Спросите о курсе валют, кредите, депозите...',
+                hintText: 'Спросите о курсе валют, карте, переводе...',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(24),
                 ),
@@ -290,6 +325,7 @@ class _ChatScreenState extends State<ChatScreen> {
             padding: const EdgeInsets.only(bottom: 2),
             child: IconButton(
               icon: const Icon(Icons.send),
+              tooltip: 'Отправить',
               color: Colors.blue.shade700,
               onPressed: _isLoading ? null : _sendMessage,
             ),

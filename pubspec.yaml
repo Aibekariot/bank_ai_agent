@@ -1,7 +1,7 @@
 name: bank_ai_agent
-description: "A new Flutter project."
+description: "Демо-банк: тестовое приложение для ИИ-ассистента Элдик Банка."
 publish_to: 'none'
-version: 0.1.0+1
+version: 0.2.0+2
 
 environment:
   sdk: ^3.13.3
@@ -10,8 +10,9 @@ dependencies:
   flutter:
     sdk: flutter
   http: ^1.6.0
-  flutter_markdown: ^0.7.7+1
-  markdown: ^7.3.0
+  # Модуль чата ассистента: его же подключит настоящее приложение банка.
+  eldik_assistant:
+    path: packages/eldik_assistant
 
 
 dev_dependencies:

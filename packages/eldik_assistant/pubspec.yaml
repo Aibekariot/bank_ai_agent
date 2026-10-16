@@ -1,0 +1,19 @@
+name: eldik_assistant
+description: "Модуль чата ИИ-ассистента для встраивания в приложение банка."
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: ^3.13.3
+
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^1.6.0
+  flutter_markdown: ^0.7.7+1
+  markdown: ^7.3.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0

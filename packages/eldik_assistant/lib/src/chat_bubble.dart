@@ -1,4 +1,3 @@
-
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -6,12 +5,24 @@ import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:markdown/markdown.dart' as md;
 
-import '../models/message.dart';
+import 'assistant_action.dart';
+import 'chat_message.dart';
 
 class ChatBubble extends StatelessWidget {
+  const ChatBubble({
+    super.key,
+    required this.message,
+    this.actions = const [],
+    this.onAction,
+    this.labelFor,
+  });
+
   final ChatMessage message;
 
-  const ChatBubble({super.key, required this.message});
+  /// Действия, которые приложение умеет выполнить (кнопки под ответом).
+  final List<AssistantAction> actions;
+  final void Function(AssistantAction action)? onAction;
+  final String Function(AssistantAction action)? labelFor;
 
   List<String> _splitTableRow(String line) {
     var value = line.trim();
@@ -205,13 +216,32 @@ class ChatBubble extends StatelessWidget {
       ),
     );
 
+    final onAction = this.onAction;
+    final actionButtons = actions.isEmpty || onAction == null
+        ? null
+        : Padding(
+            padding: const EdgeInsets.fromLTRB(10, 2, 10, 2),
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              children: [
+                for (final action in actions)
+                  OutlinedButton.icon(
+                    icon: const Icon(Icons.arrow_forward, size: 16),
+                    label: Text(labelFor?.call(action) ?? action.label),
+                    onPressed: () => onAction(action),
+                  ),
+              ],
+            ),
+          );
+
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment:
             isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-        children: [bubble, copyButton],
+        children: [bubble, ?actionButtons, copyButton],
       ),
     );
   }
